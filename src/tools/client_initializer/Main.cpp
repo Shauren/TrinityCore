@@ -19,11 +19,19 @@
 
 HANDLE ApcStartedEvent = nullptr;
 HANDLE ApcFinishedEvent = nullptr;
+HANDLE HookHandlerHandle = nullptr;
+
+LONG NTAPI HookHandler(EXCEPTION_POINTERS* exceptionInfo)
+{
+    return EXCEPTION_CONTINUE_SEARCH;
+}
 
 extern "C" {
 
 __declspec(dllexport) void CALLBACK SignalReady(ULONG_PTR /*param*/)
 {
+    HookHandlerHandle = AddVectoredExceptionHandler(1, &HookHandler);
+
     // signal launcher that wow is ready
     SetEvent(ApcStartedEvent);
 
@@ -56,6 +64,7 @@ __declspec(dllexport) BOOL __stdcall DllMain(HINSTANCE dllInstance, DWORD reason
             break;
         }
         case DLL_PROCESS_DETACH:
+            RemoveVectoredExceptionHandler(HookHandlerHandle);
             CloseHandle(ApcStartedEvent);
             CloseHandle(ApcFinishedEvent);
             break;
