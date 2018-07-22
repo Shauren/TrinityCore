@@ -40,8 +40,10 @@ Copied events should probably have a new owner
 #include "CharacterCache.h"
 #include "DatabaseEnv.h"
 #include "DB2Stores.h"
+#include "GameTime.h"
 #include "Guild.h"
 #include "GuildMgr.h"
+#include "InstanceLockMgr.h"
 #include "InstanceSaveMgr.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
@@ -90,27 +92,16 @@ void WorldSession::HandleCalendarGetCalendar(WorldPackets::Calendar::CalendarGet
         packet.Events.push_back(eventInfo);
     }
 
-    for (DifficultyEntry const* difficulty : sDifficultyStore)
+    for (InstanceLock const* lock : sInstanceLockMgr.GetInstanceLocksForPlayer(_player->GetGUID()))
     {
-        auto boundInstances = _player->GetBoundInstances(Difficulty(difficulty->ID));
-        if (boundInstances != _player->m_boundInstances.end())
-        {
-            for (auto const& boundInstance : boundInstances->second)
-            {
-                if (boundInstance.second.perm)
-                {
-                    WorldPackets::Calendar::CalendarSendCalendarRaidLockoutInfo lockoutInfo;
+        WorldPackets::Calendar::CalendarSendCalendarRaidLockoutInfo lockoutInfo;
 
-                    InstanceSave const* save = boundInstance.second.save;
-                    lockoutInfo.MapID = save->GetMapId();
-                    lockoutInfo.DifficultyID = save->GetDifficultyID();
-                    lockoutInfo.ExpireTime = save->GetResetTime() - currTime;
-                    lockoutInfo.InstanceID = save->GetInstanceId(); // instance save id as unique instance copy id
+        lockoutInfo.MapID = lock->GetMapId();
+        lockoutInfo.DifficultyID = lock->GetDifficultyId();
+        lockoutInfo.ExpireTime = int32(std::chrono::duration_cast<Seconds>(lock->GetEffectiveExpiryTime() - GameTime::GetGameTimeSystemPoint()).count());
+        lockoutInfo.InstanceID = lock->GetInstanceId();
 
-                    packet.RaidLockouts.push_back(lockoutInfo);
-                }
-            }
-        }
+        packet.RaidLockouts.push_back(lockoutInfo);
     }
 
     SendPacket(packet.Write());
@@ -484,41 +475,19 @@ void WorldSession::HandleSetSavedInstanceExtend(WorldPackets::Calendar::SetSaved
 
         player->BindToInstance(instanceBind->save, true, newState, false);
     }
-
-    /*
-    InstancePlayerBind* instanceBind = _player->GetBoundInstance(setSavedInstanceExtend.MapID, Difficulty(setSavedInstanceExtend.DifficultyID));
-    if (!instanceBind || !instanceBind->save)
-        return;
-
-    InstanceSave* save = instanceBind->save;
-    // http://www.wowwiki.com/Instance_Lock_Extension
-    // SendCalendarRaidLockoutUpdated(save);
-    */
 }
 
 // ----------------------------------- SEND ------------------------------------
 
-void WorldSession::SendCalendarRaidLockout(InstanceSave const* save, bool add)
+void WorldSession::SendCalendarRaidLockoutAdded(InstanceLock const* lock)
 {
-    time_t currTime = time(nullptr);
-    if (add)
-    {
-        WorldPackets::Calendar::CalendarRaidLockoutAdded calendarRaidLockoutAdded;
-        calendarRaidLockoutAdded.InstanceID = save->GetInstanceId();
-        calendarRaidLockoutAdded.ServerTime = uint32(currTime);
-        calendarRaidLockoutAdded.MapID = int32(save->GetMapId());
-        calendarRaidLockoutAdded.DifficultyID = save->GetDifficultyID();
-        calendarRaidLockoutAdded.TimeRemaining = uint32(save->GetResetTime() - currTime);
-        SendPacket(calendarRaidLockoutAdded.Write());
-    }
-    else
-    {
-        WorldPackets::Calendar::CalendarRaidLockoutRemoved calendarRaidLockoutRemoved;
-        calendarRaidLockoutRemoved.InstanceID = save->GetInstanceId();
-        calendarRaidLockoutRemoved.MapID = int32(save->GetMapId());
-        calendarRaidLockoutRemoved.DifficultyID = save->GetDifficultyID();
-        SendPacket(calendarRaidLockoutRemoved.Write());
-    }
+    WorldPackets::Calendar::CalendarRaidLockoutAdded calendarRaidLockoutAdded;
+    calendarRaidLockoutAdded.InstanceID = lock->GetInstanceId();
+    calendarRaidLockoutAdded.ServerTime = uint32(GameTime::GetGameTime());
+    calendarRaidLockoutAdded.MapID = int32(lock->GetMapId());
+    calendarRaidLockoutAdded.DifficultyID = lock->GetDifficultyId();
+    calendarRaidLockoutAdded.TimeRemaining = int32(std::chrono::duration_cast<Seconds>(lock->GetExpiryTime() - GameTime::GetGameTimeSystemPoint()).count());
+    SendPacket(calendarRaidLockoutAdded.Write());
 }
 
 void WorldSession::SendCalendarRaidLockoutUpdated(InstanceSave const* save)
@@ -538,4 +507,22 @@ void WorldSession::SendCalendarRaidLockoutUpdated(InstanceSave const* save)
     packet.OldTimeRemaining = save->GetResetTime() - currTime;
 
     SendPacket(packet.Write());
+}
+
+void WorldSession::SendCalendarRaidLockoutRemoved(InstanceSave const* save)
+{
+    WorldPackets::Calendar::CalendarRaidLockoutRemoved calendarRaidLockoutRemoved;
+    calendarRaidLockoutRemoved.InstanceID = save->GetInstanceId();
+    calendarRaidLockoutRemoved.MapID = int32(save->GetMapId());
+    calendarRaidLockoutRemoved.DifficultyID = save->GetDifficultyID();
+    SendPacket(calendarRaidLockoutRemoved.Write());
+}
+
+void WorldSession::SendCalendarRaidLockoutRemoved(InstanceLock const* lock)
+{
+    WorldPackets::Calendar::CalendarRaidLockoutRemoved calendarRaidLockoutRemoved;
+    calendarRaidLockoutRemoved.InstanceID = lock->GetInstanceId();
+    calendarRaidLockoutRemoved.MapID = int32(lock->GetMapId());
+    calendarRaidLockoutRemoved.DifficultyID = lock->GetDifficultyId();
+    SendPacket(calendarRaidLockoutRemoved.Write());
 }

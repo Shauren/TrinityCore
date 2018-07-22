@@ -127,12 +127,12 @@ Map* MapManager::FindBaseNonInstanceMap(uint32 mapId) const
     return map;
 }
 
-Map* MapManager::CreateMap(uint32 id, Player* player, uint32 loginInstanceId)
+Map* MapManager::CreateMap(uint32 mapId, Player* player)
 {
-    Map* m = CreateBaseMap(id);
+    Map* m = CreateBaseMap(mapId);
 
     if (m && m->Instanceable())
-        m = ((MapInstanced*)m)->CreateInstanceForPlayer(id, player, loginInstanceId);
+        m = ((MapInstanced*)m)->CreateInstanceForPlayer(player);
 
     return m;
 }
@@ -149,7 +149,7 @@ Map* MapManager::FindMap(uint32 mapid, uint32 instanceId) const
     return ((MapInstanced*)map)->FindInstanceMap(instanceId);
 }
 
-Map::EnterState MapManager::PlayerCannotEnter(uint32 mapid, Player* player, bool loginCheck)
+Map::EnterState MapManager::PlayerCannotEnter(uint32 mapid, Player* player, bool /*loginCheck*/)
 {
     MapEntry const* entry = sMapStore.LookupEntry(mapid);
     if (!entry)
@@ -204,26 +204,19 @@ Map::EnterState MapManager::PlayerCannotEnter(uint32 mapid, Player* player, bool
             TC_LOG_DEBUG("maps", "Map::CanPlayerEnter - player '%s' is dead but does not have a corpse!", player->GetName().c_str());
     }
 
-    //Get instance where player's group is bound & its map
-    if (!loginCheck && group)
+    if (entry->Instanceable())
     {
-        InstanceGroupBind* boundInstance = group->GetBoundInstance(entry);
-        if (boundInstance && boundInstance->save)
-            if (Map* boundMap = sMapMgr->FindMap(mapid, boundInstance->save->GetInstanceId()))
+        //Get instance where player's group is bound & its map
+        if (uint32 instanceIdToCheck = FindInstanceIdForPlayer(mapid, player))
+        {
+            if (Map* boundMap = FindMap(mapid, instanceIdToCheck))
                 if (Map::EnterState denyReason = boundMap->CannotEnter(player))
                     return denyReason;
-    }
 
-    // players are only allowed to enter 5 instances per hour
-    if (entry->IsDungeon() && (!player->GetGroup() || (player->GetGroup() && !player->GetGroup()->isLFGGroup())))
-    {
-        uint32 instanceIdToCheck = 0;
-        if (InstanceSave* save = player->GetInstanceSave(mapid))
-            instanceIdToCheck = save->GetInstanceId();
-
-        // instanceId can never be 0 - will not be found
-        if (!player->CheckInstanceCount(instanceIdToCheck) && !player->isDead())
-            return Map::CANNOT_ENTER_TOO_MANY_INSTANCES;
+            // players are only allowed to enter 10 instances per hour
+            if (entry->IsDungeon() && !player->CheckInstanceCount(instanceIdToCheck) && !player->isDead())
+                return Map::CANNOT_ENTER_TOO_MANY_INSTANCES;
+        }
     }
 
     //Other requirements
@@ -337,10 +330,14 @@ void MapManager::InitInstanceIds()
 {
     _nextInstanceId = 1;
 
-    if (QueryResult result = CharacterDatabase.Query("SELECT IFNULL(MAX(id), 0) FROM instance"))
-        _freeInstanceIds.resize((*result)[0].GetUInt64() + 2, true); // make space for one extra to be able to access [_nextInstanceId] index in case all slots are taken
-    else
-        _freeInstanceIds.resize(_nextInstanceId + 1, true);
+    uint64 maxExistingInstanceId = 0;
+    if (QueryResult result = CharacterDatabase.Query("SELECT IFNULL(MAX(instanceId), 0) FROM instance2"))
+        maxExistingInstanceId = std::max(maxExistingInstanceId, (*result)[0].GetUInt64());
+
+    if (QueryResult result = CharacterDatabase.Query("SELECT IFNULL(MAX(instanceId), 0) FROM character_instance_lock"))
+        maxExistingInstanceId = std::max(maxExistingInstanceId, (*result)[0].GetUInt64());
+
+    _freeInstanceIds.resize(maxExistingInstanceId + 2, true); // make space for one extra to be able to access [_nextInstanceId] index in case all slots are taken
 
     // never allow 0 id
     _freeInstanceIds[0] = false;

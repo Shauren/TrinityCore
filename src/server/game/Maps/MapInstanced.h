@@ -40,7 +40,7 @@ class TC_GAME_API MapInstanced : public Map
         void UnloadAll() override;
         EnterState CannotEnter(Player* /*player*/) override;
 
-        Map* CreateInstanceForPlayer(uint32 mapId, Player* player, uint32 loginInstanceId = 0);
+        Map* CreateInstanceForPlayer(Player* player);
         Map* FindInstanceMap(uint32 instanceId) const
         {
             InstancedMaps::const_iterator i = m_InstancedMaps.find(instanceId);
@@ -52,7 +52,7 @@ class TC_GAME_API MapInstanced : public Map
         virtual void InitVisibilityDistance() override;
 
     private:
-        InstanceMap* CreateInstance(uint32 InstanceId, InstanceSave* save, Difficulty difficulty, TeamId team);
+        InstanceMap* CreateInstance(uint32 instanceId, InstanceLock* instanceLock, Difficulty difficulty, TeamId team, Group* group);
         BattlegroundMap* CreateBattleground(uint32 InstanceId, Battleground* bg);
         GarrisonMap* CreateGarrison(uint32 instanceId, Player* owner);
 

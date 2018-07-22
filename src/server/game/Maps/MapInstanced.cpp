@@ -20,6 +20,7 @@
 #include "DB2Stores.h"
 #include "GarrisonMap.h"
 #include "Group.h"
+#include "InstanceLockMgr.h"
 #include "InstanceSaveMgr.h"
 #include "Log.h"
 #include "MapManager.h"
@@ -111,9 +112,9 @@ void MapInstanced::UnloadAll()
 - create the instance if it's not created already
 - the player is not actually added to the instance (only in InstanceMap::Add)
 */
-Map* MapInstanced::CreateInstanceForPlayer(uint32 mapId, Player* player, uint32 loginInstanceId /*= 0*/)
+Map* MapInstanced::CreateInstanceForPlayer(Player* player)
 {
-    if (GetId() != mapId || !player)
+    if (!player)
         return nullptr;
 
     Map* map = nullptr;
@@ -127,7 +128,7 @@ Map* MapInstanced::CreateInstanceForPlayer(uint32 mapId, Player* player, uint32 
         if (!newInstanceId)
             return nullptr;
 
-        map = sMapMgr->FindMap(mapId, newInstanceId);
+        map = FindInstanceMap(newInstanceId);
         if (!map)
         {
             if (Battleground* bg = player->GetBattleground())
@@ -141,57 +142,50 @@ Map* MapInstanced::CreateInstanceForPlayer(uint32 mapId, Player* player, uint32 
     }
     else if (!IsGarrison())
     {
-        InstancePlayerBind* pBind = player->GetBoundInstance(GetId(), player->GetDifficultyID(GetEntry()));
-        InstanceSave* pSave = pBind ? pBind->save : nullptr;
-
-        // priority:
-        // 1. player's permanent bind
-        // 2. player's current instance id if this is at login
-        // 3. group's current bind
-        // 4. player's current bind
-        if (!pBind || !pBind->perm)
+        Group* group = player->GetGroup();
+        Difficulty difficulty = group ? group->GetDifficultyID(GetEntry()) : player->GetDifficultyID(GetEntry());
+        MapDb2Entries entries{ GetEntry(), sDB2Manager.GetDownscaledMapDifficultyData(GetId(), difficulty) };
+        ObjectGuid instanceOwnerGuid = group ? group->GetRecentInstanceOwner(GetId()) : player->GetGUID();
+        InstanceLock* instanceLock = sInstanceLockMgr.FindActiveInstanceLock(instanceOwnerGuid, entries);
+        if (instanceLock)
         {
-            if (loginInstanceId) // if the player has a saved instance id on login, we either use this instance or relocate him out (return null)
-            {
-                map = FindInstanceMap(loginInstanceId);
-                return (map && map->GetId() == GetId()) ? map : nullptr; // is this check necessary? or does MapInstanced only find instances of itself?
-            }
+            newInstanceId = instanceLock->GetInstanceId();
 
-            InstanceGroupBind* groupBind = nullptr;
-            Group* group = player->GetGroup();
-            // use the player's difficulty setting (it may not be the same as the group's)
-            if (group)
-            {
-                groupBind = group->GetBoundInstance(this);
-                if (groupBind)
-                {
-                    // solo saves should be reset when entering a group's instance
-                    player->UnbindInstance(GetId(), player->GetDifficultyID(GetEntry()));
-                    pSave = groupBind->save;
-                }
-            }
-        }
-        if (pSave)
-        {
-            // solo/perm/group
-            newInstanceId = pSave->GetInstanceId();
-            map = FindInstanceMap(newInstanceId);
-            // it is possible that the save exists but the map doesn't
-            if (!map)
-                map = CreateInstance(newInstanceId, pSave, pSave->GetDifficultyID(), player->GetTeamId());
+            // Reset difficulty to the one used in instance lock
+            if (!entries.Map->IsFlexLocking())
+                difficulty = instanceLock->GetDifficultyId();
         }
         else
         {
-            // if no instanceId via group members or instance saves is found
-            // the instance will be created for the first time
-            newInstanceId = sMapMgr->GenerateInstanceId();
+            // Try finding instance id for normal dungeon
+            if (!entries.MapDifficulty->HasResetSchedule())
+                newInstanceId = group ? group->GetRecentInstanceId(GetId()) : player->GetRecentInstanceId(GetId());
 
-            Difficulty diff = player->GetGroup() ? player->GetGroup()->GetDifficultyID(GetEntry()) : player->GetDifficultyID(GetEntry());
-            //Seems it is now possible, but I do not know if it should be allowed
-            //ASSERT(!FindInstanceMap(NewInstanceId));
-            map = FindInstanceMap(newInstanceId);
-            if (!map)
-                map = CreateInstance(newInstanceId, nullptr, diff, player->GetTeamId());
+            // If not found or instance is not a normal dungeon, generate new one
+            if (!newInstanceId)
+                newInstanceId = sMapMgr->GenerateInstanceId();
+
+            instanceLock = sInstanceLockMgr.CreateInstanceLockForNewInstance(instanceOwnerGuid, entries, newInstanceId);
+        }
+
+        // it is possible that the save exists but the map doesn't
+        map = FindInstanceMap(newInstanceId);
+
+        // is is also possible that instance id is already in use by another group for boss-based locks
+        if (!entries.IsInstanceIdBound() && instanceLock && map && map->ToInstanceMap()->GetInstanceLock() != instanceLock)
+        {
+            newInstanceId = sMapMgr->GenerateInstanceId();
+            instanceLock->SetInstanceId(newInstanceId);
+            map = nullptr;
+        }
+
+        if (!map)
+        {
+            map = CreateInstance(newInstanceId, instanceLock, difficulty, player->GetTeamId(), group);
+            if (group)
+                group->SetRecentInstance(GetId(), instanceOwnerGuid, newInstanceId);
+            else
+                player->SetRecentInstance(GetId(), newInstanceId);
         }
     }
     else
@@ -205,45 +199,32 @@ Map* MapInstanced::CreateInstanceForPlayer(uint32 mapId, Player* player, uint32 
     return map;
 }
 
-InstanceMap* MapInstanced::CreateInstance(uint32 InstanceId, InstanceSave* save, Difficulty difficulty, TeamId team)
+InstanceMap* MapInstanced::CreateInstance(uint32 instanceId, InstanceLock* instanceLock, Difficulty difficulty, TeamId team, Group* group)
 {
     // load/create a map
     std::lock_guard<std::mutex> lock(_mapLock);
 
-    // make sure we have a valid map id
-    MapEntry const* entry = sMapStore.LookupEntry(GetId());
-    if (!entry)
-    {
-        TC_LOG_ERROR("maps", "CreateInstance: no entry for map %d", GetId());
-        ABORT();
-    }
-    InstanceTemplate const* iTemplate = sObjectMgr->GetInstanceTemplate(GetId());
-    if (!iTemplate)
+    if (!sObjectMgr->GetInstanceTemplate(GetId()))
     {
         TC_LOG_ERROR("maps", "CreateInstance: no instance template for map %d", GetId());
         ABORT();
     }
 
-    // some instances only have one difficulty
-    sDB2Manager.GetDownscaledMapDifficultyData(GetId(), difficulty);
+    TC_LOG_DEBUG("maps", "MapInstanced::CreateInstance: %smap instance %d for %d created with difficulty %s",
+        instanceLock && instanceLock->GetInstanceId() ? "" : "new ", instanceId, GetId(), sDifficultyStore.AssertEntry(difficulty)->Name[sWorld->GetDefaultDbcLocale()]);
 
-    TC_LOG_DEBUG("maps", "MapInstanced::CreateInstance: %s map instance %d for %d created with difficulty %s", save ? "" : "new ", InstanceId, GetId(), difficulty ? "heroic" : "normal");
-
-    InstanceMap* map = new InstanceMap(GetId(), GetGridExpiry(), InstanceId, difficulty, this);
+    InstanceMap* map = new InstanceMap(GetId(), GetGridExpiry(), instanceId, difficulty, instanceLock, this);
     ASSERT(map->IsDungeon());
 
     map->LoadRespawnTimes();
     map->LoadCorpseData();
-
-    bool load_data = save != nullptr;
-    map->CreateInstanceData(load_data);
-    if (InstanceScenario* instanceScenario = sScenarioMgr->CreateInstanceScenario(map, team))
-        map->SetInstanceScenario(instanceScenario);
+    map->CreateInstanceData();
+    map->SetInstanceScenario(sScenarioMgr->CreateInstanceScenario(map, team));
 
     if (sWorld->getBoolConfig(CONFIG_INSTANCEMAP_LOAD_GRIDS))
         map->LoadAllCells();
 
-    m_InstancedMaps[InstanceId] = map;
+    m_InstancedMaps[instanceId] = map;
     return map;
 }
 
