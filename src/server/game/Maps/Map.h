@@ -25,6 +25,7 @@
 #include "DynamicTree.h"
 #include "GridDefines.h"
 #include "GridRefManager.h"
+#include "GroupInstanceReference.h"
 #include "MapRefManager.h"
 #include "ObjectGuid.h"
 #include "Optional.h"
@@ -940,6 +941,9 @@ class TC_GAME_API InstanceMap : public Map
         uint32 GetMaxResetDelay() const;
 
         virtual void InitVisibilityDistance() override;
+        Group* GetOwningGroup() const { return i_owningGroupRef.getTarget(); }
+        void TrySetOwningGroup(Group* group);
+
     private:
         bool m_resetAfterUnload;
         bool m_unloadWhenEmpty;
@@ -947,6 +951,7 @@ class TC_GAME_API InstanceMap : public Map
         uint32 i_script_id;
         InstanceScenario* i_scenario;
         InstanceLock* i_instanceLock;
+        GroupInstanceReference i_owningGroupRef;
 };
 
 class TC_GAME_API BattlegroundMap : public Map

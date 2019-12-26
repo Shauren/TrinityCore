@@ -218,6 +218,9 @@ InstanceMap* MapInstanced::CreateInstance(uint32 instanceId, InstanceLock* insta
 
     map->LoadRespawnTimes();
     map->LoadCorpseData();
+    if (group)
+        map->TrySetOwningGroup(group);
+
     map->CreateInstanceData();
     map->SetInstanceScenario(sScenarioMgr->CreateInstanceScenario(map, team));
 
