@@ -19,7 +19,6 @@
 #define TRINITY_MAP_INSTANCED_H
 
 #include "Map.h"
-#include "InstanceSaveMgr.h"
 #include "DBCEnums.h"
 
 class GarrisonMap;
@@ -40,6 +39,7 @@ class TC_GAME_API MapInstanced : public Map
         void UnloadAll() override;
         EnterState CannotEnter(Player* /*player*/) override;
 
+        uint32 FindInstanceIdForPlayer(Player const* player) const;
         Map* CreateInstanceForPlayer(Player* player);
         Map* FindInstanceMap(uint32 instanceId) const
         {

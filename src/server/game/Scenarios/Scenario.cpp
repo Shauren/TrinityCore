@@ -16,7 +16,6 @@
  */
 
 #include "Scenario.h"
-#include "InstanceSaveMgr.h"
 #include "Log.h"
 #include "LootMgr.h"
 #include "ObjectAccessor.h"

@@ -16,7 +16,6 @@
  */
 
 #include "MapManager.h"
-#include "InstanceSaveMgr.h"
 #include "DatabaseEnv.h"
 #include "Log.h"
 #include "ObjectAccessor.h"
@@ -147,6 +146,15 @@ Map* MapManager::FindMap(uint32 mapid, uint32 instanceId) const
         return instanceId == 0 ? map : nullptr;
 
     return ((MapInstanced*)map)->FindInstanceMap(instanceId);
+}
+
+uint32 MapManager::FindInstanceIdForPlayer(uint32 mapId, Player const* player) const
+{
+    Map* map = FindBaseMap(mapId);
+    if (!map || !map->Instanceable())
+        return 0;
+
+    return ((MapInstanced*)map)->FindInstanceIdForPlayer(player);
 }
 
 Map::EnterState MapManager::PlayerCannotEnter(uint32 mapid, Player* player, bool /*loginCheck*/)

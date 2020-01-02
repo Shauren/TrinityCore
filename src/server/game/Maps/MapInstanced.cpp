@@ -21,7 +21,6 @@
 #include "GarrisonMap.h"
 #include "Group.h"
 #include "InstanceLockMgr.h"
-#include "InstanceSaveMgr.h"
 #include "Log.h"
 #include "MapManager.h"
 #include "MMapFactory.h"
@@ -105,6 +104,38 @@ void MapInstanced::UnloadAll()
 
     // Unload own grids (just dummy(placeholder) grids, neccesary to unload GridMaps!)
     Map::UnloadAll();
+}
+
+uint32 MapInstanced::FindInstanceIdForPlayer(Player const* player) const
+{
+    if (IsBattlegroundOrArena())
+        return player->GetBattlegroundId();
+    else if (!IsGarrison())
+    {
+        Group const* group = player->GetGroup();
+        Difficulty difficulty = group ? group->GetDifficultyID(GetEntry()) : player->GetDifficultyID(GetEntry());
+        MapDb2Entries entries{ GetEntry(), sDB2Manager.GetDownscaledMapDifficultyData(GetId(), difficulty) };
+        ObjectGuid instanceOwnerGuid = group ? group->GetRecentInstanceOwner(GetId()) : player->GetGUID();
+        InstanceLock* instanceLock = sInstanceLockMgr.FindActiveInstanceLock(instanceOwnerGuid, entries);
+        uint32 newInstanceId = 0;
+        if (instanceLock)
+            newInstanceId = instanceLock->GetInstanceId();
+        else if (!entries.MapDifficulty->HasResetSchedule()) // Try finding instance id for normal dungeon
+            newInstanceId = group ? group->GetRecentInstanceId(GetId()) : player->GetRecentInstanceId(GetId());
+
+        if (!newInstanceId)
+            return 0;
+
+        Map* map = FindInstanceMap(newInstanceId);
+
+        // is is possible that instance id is already in use by another group for boss-based locks
+        if (!entries.IsInstanceIdBound() && instanceLock && map && map->ToInstanceMap()->GetInstanceLock() != instanceLock)
+            return 0;
+
+        return newInstanceId;
+    }
+    else
+        return uint32(player->GetGUID().GetCounter());
 }
 
 /*
@@ -216,8 +247,6 @@ InstanceMap* MapInstanced::CreateInstance(uint32 instanceId, InstanceLock* insta
     InstanceMap* map = new InstanceMap(GetId(), GetGridExpiry(), instanceId, difficulty, instanceLock, this);
     ASSERT(map->IsDungeon());
 
-    map->LoadRespawnTimes();
-    map->LoadCorpseData();
     if (group)
         map->TrySetOwningGroup(group);
 
@@ -279,7 +308,7 @@ bool MapInstanced::DestroyInstance(InstancedMaps::iterator &itr)
         Map::UnloadAll();
     }
 
-    // Free up the instance id and allow it to be reused for bgs and arenas (other instances are handled in the InstanceSaveMgr)
+    // Free up the instance id and allow it to be reused for bgs and arenas
     if (itr->second->IsBattlegroundOrArena())
         sMapMgr->FreeInstanceId(itr->second->GetInstanceId());
 

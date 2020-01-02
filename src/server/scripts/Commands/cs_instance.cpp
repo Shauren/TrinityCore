@@ -26,7 +26,6 @@ EndScriptData */
 #include "Chat.h"
 #include "DB2Stores.h"
 #include "Group.h"
-#include "InstanceSaveMgr.h"
 #include "InstanceScript.h"
 #include "Language.h"
 #include "MapManager.h"
@@ -74,97 +73,97 @@ public:
         return ss.str();
     }
 
-    static bool HandleInstanceListBindsCommand(ChatHandler* handler, char const* /*args*/)
+    static bool HandleInstanceListBindsCommand(ChatHandler* /*handler*/, char const* /*args*/)
     {
-        Player* player = handler->getSelectedPlayer();
-        if (!player)
-            player = handler->GetSession()->GetPlayer();
+        //Player* player = handler->getSelectedPlayer();
+        //if (!player)
+        //    player = handler->GetSession()->GetPlayer();
 
-        uint32 counter = 0;
-        for (DifficultyEntry const* difficulty : sDifficultyStore)
-        {
-            auto binds = player->GetBoundInstances(Difficulty(difficulty->ID));
-            if (binds != player->m_boundInstances.end())
-            {
-                for (auto itr = binds->second.begin(); itr != binds->second.end(); ++itr)
-                {
-                    InstanceSave* save = itr->second.save;
-                    std::string timeleft = GetTimeString(save->GetResetTime() - time(nullptr));
-                    handler->PSendSysMessage(LANG_COMMAND_LIST_BIND_INFO, itr->first, save->GetInstanceId(), itr->second.perm ? "yes" : "no", itr->second.extendState == EXTEND_STATE_EXPIRED ? "expired" : itr->second.extendState == EXTEND_STATE_EXTENDED ? "yes" : "no", save->GetDifficultyID(), save->CanReset() ? "yes" : "no", timeleft.c_str());
-                    counter++;
-                }
-            }
-        }
-        handler->PSendSysMessage(LANG_COMMAND_LIST_BIND_PLAYER_BINDS, counter);
+        //uint32 counter = 0;
+        //for (DifficultyEntry const* difficulty : sDifficultyStore)
+        //{
+        //    auto binds = player->GetBoundInstances(Difficulty(difficulty->ID));
+        //    if (binds != player->m_boundInstances.end())
+        //    {
+        //        for (auto itr = binds->second.begin(); itr != binds->second.end(); ++itr)
+        //        {
+        //            InstanceSave* save = itr->second.save;
+        //            std::string timeleft = GetTimeString(save->GetResetTime() - time(nullptr));
+        //            handler->PSendSysMessage(LANG_COMMAND_LIST_BIND_INFO, itr->first, save->GetInstanceId(), itr->second.perm ? "yes" : "no", itr->second.extendState == EXTEND_STATE_EXPIRED ? "expired" : itr->second.extendState == EXTEND_STATE_EXTENDED ? "yes" : "no", save->GetDifficultyID(), save->CanReset() ? "yes" : "no", timeleft.c_str());
+        //            counter++;
+        //        }
+        //    }
+        //}
+        //handler->PSendSysMessage(LANG_COMMAND_LIST_BIND_PLAYER_BINDS, counter);
 
-        counter = 0;
-        if (Group* group = player->GetGroup())
-        {
-            for (DifficultyEntry const* difficulty : sDifficultyStore)
-            {
-                auto binds = group->GetBoundInstances(Difficulty(difficulty->ID));
-                if (binds != group->GetBoundInstanceEnd())
-                {
-                    for (auto itr = binds->second.begin(); itr != binds->second.end(); ++itr)
-                    {
-                        InstanceSave* save = itr->second.save;
-                        std::string timeleft = GetTimeString(save->GetResetTime() - time(nullptr));
-                        handler->PSendSysMessage(LANG_COMMAND_LIST_BIND_INFO, itr->first, save->GetInstanceId(), itr->second.perm ? "yes" : "no", "-", save->GetDifficultyID(), save->CanReset() ? "yes" : "no", timeleft.c_str());
-                        counter++;
-                    }
-                }
-            }
-        }
-        handler->PSendSysMessage(LANG_COMMAND_LIST_BIND_GROUP_BINDS, counter);
+        //counter = 0;
+        //if (Group* group = player->GetGroup())
+        //{
+        //    for (DifficultyEntry const* difficulty : sDifficultyStore)
+        //    {
+        //        auto binds = group->GetBoundInstances(Difficulty(difficulty->ID));
+        //        if (binds != group->GetBoundInstanceEnd())
+        //        {
+        //            for (auto itr = binds->second.begin(); itr != binds->second.end(); ++itr)
+        //            {
+        //                InstanceSave* save = itr->second.save;
+        //                std::string timeleft = GetTimeString(save->GetResetTime() - time(nullptr));
+        //                handler->PSendSysMessage(LANG_COMMAND_LIST_BIND_INFO, itr->first, save->GetInstanceId(), itr->second.perm ? "yes" : "no", "-", save->GetDifficultyID(), save->CanReset() ? "yes" : "no", timeleft.c_str());
+        //                counter++;
+        //            }
+        //        }
+        //    }
+        //}
+        //handler->PSendSysMessage(LANG_COMMAND_LIST_BIND_GROUP_BINDS, counter);
 
         return true;
     }
 
-    static bool HandleInstanceUnbindCommand(ChatHandler* handler, char const* args)
+    static bool HandleInstanceUnbindCommand(ChatHandler* /*handler*/, char const* /*args*/)
     {
-        if (!*args)
-            return false;
+        //if (!*args)
+        //    return false;
 
-        Player* player = handler->getSelectedPlayer();
-        if (!player)
-            player = handler->GetSession()->GetPlayer();
+        //Player* player = handler->getSelectedPlayer();
+        //if (!player)
+        //    player = handler->GetSession()->GetPlayer();
 
-        char* map = strtok((char*)args, " ");
-        char* pDiff = strtok(nullptr, " ");
-        int8 diff = -1;
-        if (pDiff)
-            diff = atoi(pDiff);
-        uint16 counter = 0;
-        uint16 MapId = 0;
+        //char* map = strtok((char*)args, " ");
+        //char* pDiff = strtok(nullptr, " ");
+        //int8 diff = -1;
+        //if (pDiff)
+        //    diff = atoi(pDiff);
+        //uint16 counter = 0;
+        //uint16 MapId = 0;
 
-        if (strcmp(map, "all") != 0)
-        {
-            MapId = uint16(atoi(map));
-            if (!MapId)
-                return false;
-        }
+        //if (strcmp(map, "all") != 0)
+        //{
+        //    MapId = uint16(atoi(map));
+        //    if (!MapId)
+        //        return false;
+        //}
 
-        for (DifficultyEntry const* difficulty : sDifficultyStore)
-        {
-            auto binds = player->GetBoundInstances(Difficulty(difficulty->ID));
-            if (binds != player->m_boundInstances.end())
-            {
-                for (auto itr = binds->second.begin(); itr != binds->second.end();)
-                {
-                    InstanceSave* save = itr->second.save;
-                    if (itr->first != player->GetMapId() && (!MapId || MapId == itr->first) && (diff == -1 || diff == save->GetDifficultyID()))
-                    {
-                        std::string timeleft = GetTimeString(save->GetResetTime() - time(nullptr));
-                        handler->PSendSysMessage(LANG_COMMAND_INST_UNBIND_UNBINDING, itr->first, save->GetInstanceId(), itr->second.perm ? "yes" : "no", save->GetDifficultyID(), save->CanReset() ? "yes" : "no", timeleft.c_str());
-                        player->UnbindInstance(itr, binds);
-                        counter++;
-                    }
-                    else
-                        ++itr;
-                }
-            }
-        }
-        handler->PSendSysMessage(LANG_COMMAND_INST_UNBIND_UNBOUND, counter);
+        //for (DifficultyEntry const* difficulty : sDifficultyStore)
+        //{
+        //    auto binds = player->GetBoundInstances(Difficulty(difficulty->ID));
+        //    if (binds != player->m_boundInstances.end())
+        //    {
+        //        for (auto itr = binds->second.begin(); itr != binds->second.end();)
+        //        {
+        //            InstanceSave* save = itr->second.save;
+        //            if (itr->first != player->GetMapId() && (!MapId || MapId == itr->first) && (diff == -1 || diff == save->GetDifficultyID()))
+        //            {
+        //                std::string timeleft = GetTimeString(save->GetResetTime() - time(nullptr));
+        //                handler->PSendSysMessage(LANG_COMMAND_INST_UNBIND_UNBINDING, itr->first, save->GetInstanceId(), itr->second.perm ? "yes" : "no", save->GetDifficultyID(), save->CanReset() ? "yes" : "no", timeleft.c_str());
+        //                player->UnbindInstance(itr, binds);
+        //                counter++;
+        //            }
+        //            else
+        //                ++itr;
+        //        }
+        //    }
+        //}
+        //handler->PSendSysMessage(LANG_COMMAND_INST_UNBIND_UNBOUND, counter);
 
         return true;
     }
@@ -173,9 +172,9 @@ public:
     {
         handler->PSendSysMessage(LANG_COMMAND_INST_STAT_LOADED_INST, sMapMgr->GetNumInstances());
         handler->PSendSysMessage(LANG_COMMAND_INST_STAT_PLAYERS_IN, sMapMgr->GetNumPlayersInInstances());
-        handler->PSendSysMessage(LANG_COMMAND_INST_STAT_SAVES, sInstanceSaveMgr->GetNumInstanceSaves());
-        handler->PSendSysMessage(LANG_COMMAND_INST_STAT_PLAYERSBOUND, sInstanceSaveMgr->GetNumBoundPlayersTotal());
-        handler->PSendSysMessage(LANG_COMMAND_INST_STAT_GROUPSBOUND, sInstanceSaveMgr->GetNumBoundGroupsTotal());
+        //handler->PSendSysMessage(LANG_COMMAND_INST_STAT_SAVES, sInstanceSaveMgr->GetNumInstanceSaves());
+        //handler->PSendSysMessage(LANG_COMMAND_INST_STAT_PLAYERSBOUND, sInstanceSaveMgr->GetNumBoundPlayersTotal());
+        //handler->PSendSysMessage(LANG_COMMAND_INST_STAT_GROUPSBOUND, sInstanceSaveMgr->GetNumBoundGroupsTotal());
 
         return true;
     }

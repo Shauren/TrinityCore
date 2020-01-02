@@ -47,7 +47,6 @@ class GameObjectModel;
 class Group;
 class InstanceLock;
 class InstanceMap;
-class InstanceSave;
 class InstanceScript;
 class InstanceScenario;
 class MapInstanced;
@@ -470,7 +469,6 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         bool IsDungeon() const;
         bool IsNonRaidDungeon() const;
         bool IsRaid() const;
-        bool IsRaidOrHeroicDungeon() const;
         bool IsHeroic() const;
         bool Is25ManRaid() const;
         bool IsBattleground() const;
@@ -609,7 +607,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         void SaveRespawnTime(SpawnObjectType type, ObjectGuid::LowType spawnId, uint32 entry, time_t respawnTime, uint32 zoneId, uint32 gridId = 0, bool writeDB = true, bool replace = false, CharacterDatabaseTransaction dbTrans = nullptr);
         void SaveRespawnTimeDB(SpawnObjectType type, ObjectGuid::LowType spawnId, time_t respawnTime, CharacterDatabaseTransaction dbTrans = nullptr);
         void LoadRespawnTimes();
-        void DeleteRespawnTimes() { DeleteRespawnInfo(); DeleteRespawnTimesInDB(GetId(), GetInstanceId()); }
+        void DeleteRespawnTimes() { DeleteRespawnInfo(); DeleteRespawnTimesInDB(); }
 
         void LoadCorpseData();
         void DeleteCorpseData();
@@ -618,7 +616,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         Corpse* ConvertCorpseToBones(ObjectGuid const& ownerGuid, bool insignia = false);
         void RemoveOldCorpses();
 
-        static void DeleteRespawnTimesInDB(uint16 mapId, uint32 instanceId);
+        void DeleteRespawnTimesInDB();
 
         void SendInitTransports(Player* player);
         void SendRemoveTransports(Player* player);
@@ -828,6 +826,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
             if (RespawnInfo* info = GetRespawnInfo(type, spawnId))
                 RemoveRespawnTime(info, doRespawn, dbTrans);
         }
+        virtual void RemoveRespawnTimeDB(RespawnInfo const* info, CharacterDatabaseTransaction dbTrans = nullptr);
 
         SpawnGroupTemplateData const* GetSpawnGroupData(uint32 groupId) const;
         bool SpawnGroupSpawn(uint32 groupId, bool ignoreRespawn = false, bool force = false, std::vector<WorldObject*>* spawnedObjects = nullptr);
@@ -918,7 +917,7 @@ class TC_GAME_API InstanceMap : public Map
         void RemovePlayerFromMap(Player*, bool) override;
         void Update(uint32) override;
         void CreateInstanceData();
-        bool Reset(uint8 method);
+        bool Reset(InstanceResetMethod method);
         uint32 GetScriptId() const { return i_script_id; }
         std::string const& GetScriptName() const;
         InstanceScript* GetInstanceScript() { return i_data; }
@@ -931,16 +930,15 @@ class TC_GAME_API InstanceMap : public Map
         void CreateInstanceLockForPlayer(Player* player);
         void UnloadAll() override;
         EnterState CannotEnter(Player* player) override;
-        void SendResetWarnings(uint32 timeLeft) const;
         void SetResetSchedule(bool on);
 
         /* this checks if any players have a permanent bind (included reactivatable expired binds) to the instance ID
         it needs a DB query, so use sparingly */
         bool HasPermBoundPlayers() const;
         uint32 GetMaxPlayers() const;
-        uint32 GetMaxResetDelay() const;
 
         virtual void InitVisibilityDistance() override;
+
         Group* GetOwningGroup() const { return i_owningGroupRef.getTarget(); }
         void TrySetOwningGroup(Group* group);
 

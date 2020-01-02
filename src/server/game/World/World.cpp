@@ -57,7 +57,6 @@
 #include "GuildFinderMgr.h"
 #include "GuildMgr.h"
 #include "InstanceLockMgr.h"
-#include "InstanceSaveMgr.h"
 #include "IPLocation.h"
 #include "Language.h"
 #include "LFGMgr.h"
@@ -1767,8 +1766,7 @@ void World::SetInitialWorldSettings()
 
     // Must be called before `creature_respawn`/`gameobject_respawn` tables
     TC_LOG_INFO("server.loading", "Loading instances...");
-    sInstanceSaveMgr->LoadInstances();
-
+    sMapMgr->InitInstanceIds();
     sInstanceLockMgr.Load();
 
     TC_LOG_INFO("server.loading", "Loading Localization strings...");
@@ -2636,9 +2634,6 @@ void World::Update(uint32 diff)
         m_timers[WUPDATE_GUILDSAVE].Reset();
         sGuildMgr->SaveGuilds();
     }
-
-    // update the instance reset times
-    sInstanceSaveMgr->Update();
 
     // Check for shutdown warning
     if (_guidWarn && !_guidAlert)
