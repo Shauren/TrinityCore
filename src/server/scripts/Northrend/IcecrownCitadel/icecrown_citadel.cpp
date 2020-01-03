@@ -2202,20 +2202,6 @@ class at_icc_shutdown_traps : public AreaTriggerScript
         }
 };
 
-class at_icc_start_blood_quickening : public AreaTriggerScript
-{
-    public:
-        at_icc_start_blood_quickening() : AreaTriggerScript("at_icc_start_blood_quickening") { }
-
-        bool OnTrigger(Player* player, AreaTriggerEntry const* /*areaTrigger*/, bool /*entered*/) override
-        {
-            if (InstanceScript* instance = player->GetInstanceScript())
-                if (instance->GetData(DATA_BLOOD_QUICKENING_STATE) == NOT_STARTED)
-                    instance->SetData(DATA_BLOOD_QUICKENING_STATE, IN_PROGRESS);
-            return true;
-        }
-};
-
 class at_icc_start_frostwing_gauntlet : public AreaTriggerScript
 {
     public:
@@ -2255,6 +2241,5 @@ void AddSC_icecrown_citadel()
     new spell_icc_soul_missile();
     new at_icc_saurfang_portal();
     new at_icc_shutdown_traps();
-    new at_icc_start_blood_quickening();
     new at_icc_start_frostwing_gauntlet();
 }

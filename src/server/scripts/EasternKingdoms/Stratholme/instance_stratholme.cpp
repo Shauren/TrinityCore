@@ -31,7 +31,6 @@ EndScriptData */
 #include "Map.h"
 #include "Player.h"
 #include "stratholme.h"
-#include <sstream>
 
 enum Misc
 {
@@ -54,14 +53,11 @@ class instance_stratholme : public InstanceMapScript
             instance_stratholme_InstanceMapScript(InstanceMap* map) : InstanceScript(map)
             {
                 SetHeaders(DataHeader);
-                for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
-                    EncounterState[i] = NOT_STARTED;
+                SetBossNumber(MAX_ENCOUNTER);
 
                 for (uint8 i = 0; i < 5; ++i)
                     IsSilverHandDead[i] = false;
             }
-
-            uint32 EncounterState[MAX_ENCOUNTER];
 
             bool IsSilverHandDead[5];
 
@@ -85,7 +81,7 @@ class instance_stratholme : public InstanceMapScript
             bool StartSlaugtherSquare()
             {
                 //change to DONE when crystals implemented
-                if (EncounterState[1] == IN_PROGRESS && EncounterState[2] == IN_PROGRESS && EncounterState[3] == IN_PROGRESS)
+                if (GetBossState(1) == IN_PROGRESS && GetBossState(2) == IN_PROGRESS && GetBossState(3) == IN_PROGRESS)
                 {
                     HandleGameObject(portGauntletGUID, true);
                     HandleGameObject(portSlaugtherGUID, true);
@@ -206,18 +202,18 @@ class instance_stratholme : public InstanceMapScript
                         switch (data)
                         {
                             case IN_PROGRESS:
-                                if (EncounterState[0] == IN_PROGRESS || EncounterState[0] == FAIL)
+                                if (GetBossState(0) == IN_PROGRESS || GetBossState(0) == FAIL)
                                     break;
-                                EncounterState[0] = data;
+                                SetBossState(0, EncounterState(data));
                                 events.ScheduleEvent(EVENT_BARON_RUN, 2700000);
                                 TC_LOG_DEBUG("scripts", "Instance Stratholme: Baron run in progress.");
                                 break;
                             case FAIL:
                                 DoRemoveAurasDueToSpellOnPlayers(SPELL_BARON_ULTIMATUM);
-                                EncounterState[0] = data;
+                                SetBossState(0, EncounterState(data));
                                 break;
                             case DONE:
-                                EncounterState[0] = data;
+                                SetBossState(0, EncounterState(data));
                                 if (Creature* ysidaTrigger = instance->GetCreature(ysidaTriggerGUID))
                                 {
                                     Position ysidaPos = ysidaTrigger->GetPosition();
@@ -228,7 +224,7 @@ class instance_stratholme : public InstanceMapScript
                         }
                         break;
                     case TYPE_BARONESS:
-                        EncounterState[1] = data;
+                        SetBossState(1, EncounterState(data));
                         if (data == IN_PROGRESS)
                         {
                             HandleGameObject(ziggurat1GUID, true);
@@ -237,7 +233,7 @@ class instance_stratholme : public InstanceMapScript
                         }
                         break;
                     case TYPE_NERUB:
-                        EncounterState[2] = data;
+                        SetBossState(2, EncounterState(data));
                         if (data == IN_PROGRESS)
                         {
                             HandleGameObject(ziggurat2GUID, true);
@@ -246,7 +242,7 @@ class instance_stratholme : public InstanceMapScript
                         }
                         break;
                     case TYPE_PALLID:
-                        EncounterState[3] = data;
+                        SetBossState(3, EncounterState(data));
                         if (data == IN_PROGRESS)
                         {
                             HandleGameObject(ziggurat3GUID, true);
@@ -287,7 +283,7 @@ class instance_stratholme : public InstanceMapScript
                             events.ScheduleEvent(EVENT_SLAUGHTER_SQUARE, 60000);
                             TC_LOG_DEBUG("scripts", "Instance Stratholme: Slaugther event will continue in 1 minute.");
                         }
-                        EncounterState[4] = data;
+                        SetBossState(4, EncounterState(data));
                         break;
                     case TYPE_BARON:
                         if (data == IN_PROGRESS)
@@ -318,7 +314,7 @@ class instance_stratholme : public InstanceMapScript
                                 SetData(TYPE_BARON_RUN, DONE);
                             }
                         }
-                        EncounterState[5] = data;
+                        SetBossState(5, EncounterState(data));
                         break;
                     case TYPE_SH_AELMAR:
                         IsSilverHandDead[0] = (data) ? true : false;
@@ -336,46 +332,6 @@ class instance_stratholme : public InstanceMapScript
                         IsSilverHandDead[4] = (data) ? true : false;
                         break;
                 }
-
-                if (data == DONE)
-                    SaveToDB();
-            }
-
-            std::string GetSaveData() override
-            {
-                OUT_SAVE_INST_DATA;
-
-                std::ostringstream saveStream;
-                saveStream << EncounterState[0] << ' ' << EncounterState[1] << ' ' << EncounterState[2] << ' '
-                    << EncounterState[3] << ' ' << EncounterState[4] << ' ' << EncounterState[5];
-
-                OUT_SAVE_INST_DATA_COMPLETE;
-                return saveStream.str();
-            }
-
-            void Load(char const* in) override
-            {
-                if (!in)
-                {
-                    OUT_LOAD_INST_DATA_FAIL;
-                    return;
-                }
-
-                OUT_LOAD_INST_DATA(in);
-
-                std::istringstream loadStream(in);
-                loadStream >> EncounterState[0] >> EncounterState[1] >> EncounterState[2] >> EncounterState[3]
-                >> EncounterState[4] >> EncounterState[5];
-
-                // Do not reset 1, 2 and 3. they are not set to done, yet .
-                if (EncounterState[0] == IN_PROGRESS)
-                    EncounterState[0] = NOT_STARTED;
-                if (EncounterState[4] == IN_PROGRESS)
-                    EncounterState[4] = NOT_STARTED;
-                if (EncounterState[5] == IN_PROGRESS)
-                    EncounterState[5] = NOT_STARTED;
-
-                OUT_LOAD_INST_DATA_COMPLETE;
             }
 
             uint32 GetData(uint32 type) const override
@@ -387,17 +343,17 @@ class instance_stratholme : public InstanceMapScript
                               return 1;
                           return 0;
                       case TYPE_BARON_RUN:
-                          return EncounterState[0];
+                          return GetBossState(0);
                       case TYPE_BARONESS:
-                          return EncounterState[1];
+                          return GetBossState(1);
                       case TYPE_NERUB:
-                          return EncounterState[2];
+                          return GetBossState(2);
                       case TYPE_PALLID:
-                          return EncounterState[3];
+                          return GetBossState(3);
                       case TYPE_RAMSTEIN:
-                          return EncounterState[4];
+                          return GetBossState(4);
                       case TYPE_BARON:
-                          return EncounterState[5];
+                          return GetBossState(5);
                   }
                   return 0;
             }

@@ -21,7 +21,6 @@
 #include "ZoneScript.h"
 #include "Common.h"
 #include <array>
-#include <iosfwd>
 #include <map>
 #include <memory>
 #include <set>
@@ -37,6 +36,7 @@ class Creature;
 class GameObject;
 class InstanceMap;
 class ModuleReference;
+class PersistentInstanceScriptValueBase;
 class Player;
 class Unit;
 struct DungeonEncounterEntry;
@@ -160,11 +160,40 @@ struct MinionInfo
     BossInfo* bossInfo;
 };
 
-struct UpdateSaveDataEvent
+struct UpdateBossStateSaveDataEvent
 {
+    DungeonEncounterEntry const* DungeonEncounter;
     uint32 BossId;
     EncounterState NewState;
 };
+
+struct UpdateAdditionalSaveDataEvent
+{
+    enum class ValueType
+    {
+        Int32, UInt32, Float
+    };
+
+    template<typename T> struct ValueTypeHelper { };
+
+    UpdateAdditionalSaveDataEvent(char const* key, int32 value) : Key(key), Type(ValueType::Int32), Int32Value(value) { }
+    UpdateAdditionalSaveDataEvent(char const* key, uint32 value) : Key(key), Type(ValueType::UInt32), UInt32Value(value) { }
+    UpdateAdditionalSaveDataEvent(char const* key, float value) : Key(key), Type(ValueType::Float), FloatValue(value) { }
+
+    char const* Key;
+    ValueType Type;
+
+    union
+    {
+        int32 Int32Value;
+        uint32 UInt32Value;
+        float FloatValue;
+    };
+};
+
+template<> struct UpdateAdditionalSaveDataEvent::ValueTypeHelper<int32> : std::integral_constant<ValueType, ValueType::Int32> { };
+template<> struct UpdateAdditionalSaveDataEvent::ValueTypeHelper<uint32> : std::integral_constant<ValueType, ValueType::UInt32> { };
+template<> struct UpdateAdditionalSaveDataEvent::ValueTypeHelper<float> : std::integral_constant<ValueType, ValueType::Float> { };
 
 typedef std::multimap<uint32 /*entry*/, DoorInfo> DoorInfoMap;
 typedef std::pair<DoorInfoMap::const_iterator, DoorInfoMap::const_iterator> DoorInfoMapBounds;
@@ -191,14 +220,13 @@ class TC_GAME_API InstanceScript : public ZoneScript
         // if we're starting without any saved instance data
         virtual void Create();
         // if we're loading existing instance save data
-        virtual void Load(char const* data);
+        void Load(char const* data);
 
         // When save is needed, this function generates the data
-        virtual std::string GetSaveData();
+        std::string GetSaveData();
 
-        virtual std::string UpdateSaveData(std::string const& oldData, UpdateSaveDataEvent const& event);
-
-        void SaveToDB();
+        std::string UpdateBossStateSaveData(std::string const& oldData, UpdateBossStateSaveDataEvent const& event);
+        std::string UpdateAdditionalSaveData(std::string const& oldData, UpdateAdditionalSaveDataEvent const& event);
 
         virtual void Update(uint32 /*diff*/) { }
         void UpdateCombatResurrection(uint32 diff);
@@ -260,7 +288,8 @@ class TC_GAME_API InstanceScript : public ZoneScript
 
         virtual bool SetBossState(uint32 id, EncounterState state);
         EncounterState GetBossState(uint32 id) const { return id < bosses.size() ? bosses[id].state : TO_BE_DECIDED; }
-        static char const* GetBossStateName(uint8 state);
+        static char const* GetBossStateName(EncounterState state);
+        static EncounterState GetBossStateFromName(char const* stateName);
         CreatureBoundary const* GetBossBoundary(uint32 id) const { return id < bosses.size() ? &bosses[id].boundary : nullptr; }
 
         // Achievement criteria additional requirements check
@@ -316,6 +345,10 @@ class TC_GAME_API InstanceScript : public ZoneScript
         uint8 GetCombatResurrectionCharges() const { return _combatResurrectionCharges; }
         uint32 GetCombatResurrectionChargeInterval() const;
 
+        void RegisterPersistentScriptValue(PersistentInstanceScriptValueBase* value) { _persistentScriptValues.push_back(value); }
+        std::string const& GetHeader() const { return headers; }
+        std::vector<PersistentInstanceScriptValueBase*>& GetPersistentScriptValues() { return _persistentScriptValues; }
+
     protected:
         void SetHeaders(std::string const& dataHeaders);
         void SetBossNumber(uint32 number) { bosses.resize(number); }
@@ -346,13 +379,8 @@ class TC_GAME_API InstanceScript : public ZoneScript
         // Pay very much attention at how the returned BossInfo data is modified to avoid issues.
         BossInfo* GetBossInfo(uint32 id);
 
-        // Instance Load and Save
-        bool ReadSaveDataHeaders(std::istringstream& data);
-        void ReadSaveDataBossStates(std::istringstream& data);
-        virtual void ReadSaveDataMore(std::istringstream& /*data*/) { }
-        void WriteSaveDataHeaders(std::ostringstream& data);
-        void WriteSaveDataBossStates(std::ostringstream& data);
-        virtual void WriteSaveDataMore(std::ostringstream& /*data*/) { }
+        // Override this function to validate all additional data loads
+        virtual void AfterDataLoad() { }
 
         bool _SkipCheckRequiredBosses(Player const* player = nullptr) const;
 
@@ -361,8 +389,11 @@ class TC_GAME_API InstanceScript : public ZoneScript
         void LoadDungeonEncounterData(uint32 bossId, std::array<uint32, MAX_DUNGEON_ENCOUNTERS_PER_BOSS> const& dungeonEncounterIds);
         void UpdateEncounterState(EncounterCreditType type, uint32 creditEntry, Unit* source);
 
-        std::vector<char> headers;
+        void SaveToDB();
+
+        std::string headers;
         std::vector<BossInfo> bosses;
+        std::vector<PersistentInstanceScriptValueBase*> _persistentScriptValues;
         DoorInfoMap doors;
         MinionInfoMap minions;
         ObjectInfoMap _creatureInfo;
@@ -381,6 +412,63 @@ class TC_GAME_API InstanceScript : public ZoneScript
         // Strong reference to the associated script module
         std::shared_ptr<ModuleReference> module_reference;
     #endif // #ifndef TRINITY_API_USE_DYNAMIC_LINKING
+};
+
+class TC_GAME_API PersistentInstanceScriptValueBase
+{
+protected:
+    PersistentInstanceScriptValueBase(InstanceScript& instance, char const* name);
+
+public:
+    char const* GetName() const { return _name; }
+    virtual UpdateAdditionalSaveDataEvent::ValueType GetType() const = 0;
+    virtual UpdateAdditionalSaveDataEvent CreateEvent() const = 0;
+
+protected:
+    void NotifyValueChanged();
+
+    InstanceScript& _instance;
+    char const* _name;
+};
+
+template<typename T>
+class PersistentInstanceScriptValue : public PersistentInstanceScriptValueBase
+{
+public:
+    PersistentInstanceScriptValue(InstanceScript& instance, char const* name, T value = {})
+        : PersistentInstanceScriptValueBase(instance, name), _value(std::move(value))
+    {
+    }
+
+    operator T() const
+    {
+        return _value;
+    }
+
+    PersistentInstanceScriptValue& operator=(T value)
+    {
+        _value = std::move(value);
+        NotifyValueChanged();
+        return *this;
+    }
+
+    void LoadValue(T value)
+    {
+        _value = std::move(value);
+    }
+
+    UpdateAdditionalSaveDataEvent::ValueType GetType() const override
+    {
+        return UpdateAdditionalSaveDataEvent::ValueTypeHelper<T>::value;
+    }
+
+    UpdateAdditionalSaveDataEvent CreateEvent() const override
+    {
+        return { _name, _value };
+    }
+
+private:
+    T _value;
 };
 
 #endif // TRINITY_INSTANCE_DATA_H

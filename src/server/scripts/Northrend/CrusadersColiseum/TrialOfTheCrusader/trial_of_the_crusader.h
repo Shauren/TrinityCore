@@ -35,7 +35,6 @@ enum TCRDataTypes
     BOSS_ANUBARAK               = 5,
     MAX_ENCOUNTERS              = 6,
 
-    TYPE_COUNTER                = 8,
     TYPE_EVENT                  = 9,
 
     TYPE_EVENT_TIMER            = 101,

@@ -124,8 +124,6 @@ class instance_naxxramas : public InstanceMapScript
                 hadSapphironBirth       = false;
                 CurrentWingTaunt        = SAY_KELTHUZAD_FIRST_WING_TAUNT;
 
-                playerDied              = 0;
-
                 nextFroggerWave         = 0;
                 events.ScheduleEvent(EVENT_SUMMON_FROGGER_WAVE, Seconds(1));
             }
@@ -252,12 +250,6 @@ class instance_naxxramas : public InstanceMapScript
 
             void OnUnitDeath(Unit* unit) override
             {
-                if (unit->GetTypeId() == TYPEID_PLAYER && IsEncounterInProgress())
-                {
-                    playerDied = 1;
-                    SaveToDB();
-                }
-
                 if (Creature* creature = unit->ToCreature())
                     if (creature->GetEntry() == NPC_BIGGLESWORTH)
                     {
@@ -556,8 +548,6 @@ class instance_naxxramas : public InstanceMapScript
                     case 13239: // Loatheb
                     case 13240: // Thaddius
                     case 7617:  // Kel'Thuzad
-                        if (AreAllEncountersDone() && !playerDied)
-                            return true;
                         return false;
                 }
 
@@ -607,9 +597,6 @@ class instance_naxxramas : public InstanceMapScript
             ObjectGuid LichKingGUID;
             bool hadSapphironBirth;
             uint8 CurrentWingTaunt;
-
-            /* The Immortal / The Undying */
-            uint32 playerDied;
 
             int8 nextFroggerWave;
 

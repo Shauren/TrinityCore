@@ -22,7 +22,6 @@
 #include "GameObject.h"
 #include "InstanceScript.h"
 #include "Map.h"
-#include <sstream>
 
 DoorData const doorData[] =
 {
@@ -129,15 +128,13 @@ class instance_ahnkahet : public InstanceMapScript
                 return 0;
             }
 
-            void WriteSaveDataMore(std::ostringstream& data) override
+            void AfterDataLoad() override
             {
-                data << SpheresState[0] << ' ' << SpheresState[1];
-            }
-
-            void ReadSaveDataMore(std::istringstream& data) override
-            {
-                data >> SpheresState[0];
-                data >> SpheresState[1];
+                if (GetBossState(DATA_PRINCE_TALDARAM) == DONE)
+                {
+                    SpheresState[0] = IN_PROGRESS;
+                    SpheresState[1] = IN_PROGRESS;
+                }
             }
 
         protected:

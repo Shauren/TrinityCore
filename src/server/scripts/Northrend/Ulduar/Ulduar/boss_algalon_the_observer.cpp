@@ -150,9 +150,6 @@ enum Events
     EVENT_OUTRO_12                  = 33,
     EVENT_OUTRO_13                  = 34,
     EVENT_OUTRO_14                  = 35,
-    EVENT_DESPAWN_ALGALON_1         = 36,
-    EVENT_DESPAWN_ALGALON_2         = 37,
-    EVENT_DESPAWN_ALGALON_3         = 38,
 
     // Living Constellation
     EVENT_ARCANE_BARRAGE            = 39,
@@ -370,18 +367,6 @@ class boss_algalon_the_observer : public CreatureScript
                         events.CancelEvent(EVENT_RESUME_UPDATING);
                         events.ScheduleEvent(EVENT_ASCEND_TO_THE_HEAVENS, 1500);
                         break;
-                    case EVENT_DESPAWN_ALGALON:
-                        events.Reset();
-                        events.SetPhase(PHASE_ROLE_PLAY);
-                        if (me->IsInCombat())
-                            events.ScheduleEvent(EVENT_ASCEND_TO_THE_HEAVENS, 1);
-                        events.ScheduleEvent(EVENT_DESPAWN_ALGALON_1, 5000);
-                        events.ScheduleEvent(EVENT_DESPAWN_ALGALON_2, 17000);
-                        events.ScheduleEvent(EVENT_DESPAWN_ALGALON_3, 26000);
-                        me->DespawnOrUnsummon(34000);
-                        me->AddUnitFlag(UNIT_FLAG_NOT_SELECTABLE);
-                        me->SetImmuneToNPC(true);
-                        break;
                     case ACTION_INIT_ALGALON:
                         _firstPull = false;
                         me->SetImmuneToPC(false);
@@ -419,7 +404,6 @@ class boss_algalon_the_observer : public CreatureScript
                     DoZoneInCombat();
                     introDelay = 26000;
                     summons.DespawnEntry(NPC_AZEROTH);
-                    instance->SetData(EVENT_DESPAWN_ALGALON, 0);
                     events.ScheduleEvent(EVENT_START_COMBAT, 18000);
                 }
 

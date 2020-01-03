@@ -22,7 +22,6 @@
 #include "InstanceScript.h"
 #include "Log.h"
 #include "Map.h"
-#include <sstream>
 
 #define    MAX_ENCOUNTER  1
 
@@ -41,37 +40,13 @@ public:
         instance_gnomeregan_InstanceMapScript(InstanceMap* map) : InstanceScript(map)
         {
             SetHeaders(DataHeader);
-            memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
+            SetBossNumber(MAX_ENCOUNTER);
         }
-
-        uint32 m_auiEncounter[MAX_ENCOUNTER];
 
         ObjectGuid uiCaveInLeftGUID;
         ObjectGuid uiCaveInRightGUID;
 
         ObjectGuid uiBastmasterEmiShortfuseGUID;
-
-        void Load(char const* in) override
-        {
-            if (!in)
-            {
-                OUT_LOAD_INST_DATA_FAIL;
-                return;
-            }
-
-            OUT_LOAD_INST_DATA(in);
-
-            std::istringstream loadStream(in);
-            loadStream >> m_auiEncounter[0];
-
-            for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
-            {
-                if (m_auiEncounter[i] == IN_PROGRESS)
-                    m_auiEncounter[i] = NOT_STARTED;
-            }
-
-            OUT_LOAD_INST_DATA_COMPLETE;
-        }
 
         void OnCreatureCreate(Creature* creature) override
         {
@@ -87,12 +62,12 @@ public:
             {
                 case GO_CAVE_IN_LEFT:
                     uiCaveInLeftGUID = go->GetGUID();
-                    if (m_auiEncounter[0] == DONE || m_auiEncounter[0] == NOT_STARTED)
+                    if (GetBossState(0) == DONE || GetBossState(0) == NOT_STARTED)
                         HandleGameObject(ObjectGuid::Empty, false, go);
                     break;
                 case GO_CAVE_IN_RIGHT:
                     uiCaveInRightGUID = go->GetGUID();
-                    if (m_auiEncounter[0] == DONE || m_auiEncounter[0] == NOT_STARTED)
+                    if (GetBossState(0) == DONE || GetBossState(0) == NOT_STARTED)
                         HandleGameObject(ObjectGuid::Empty, false, go);
                     break;
             }
@@ -103,9 +78,7 @@ public:
             switch (uiType)
             {
                 case TYPE_EVENT:
-                    m_auiEncounter[0] = uiData;
-                    if (uiData == DONE)
-                        SaveToDB();
+                    SetBossState(0, EncounterState(uiData));
                     break;
             }
         }
@@ -114,7 +87,7 @@ public:
         {
             switch (uiType)
             {
-                case TYPE_EVENT:    return m_auiEncounter[0];
+                case TYPE_EVENT:    return GetBossState(0);
             }
             return 0;
         }

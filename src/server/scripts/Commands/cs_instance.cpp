@@ -179,25 +179,25 @@ public:
         return true;
     }
 
-    static bool HandleInstanceSaveDataCommand(ChatHandler* handler, char const* /*args*/)
+    static bool HandleInstanceSaveDataCommand(ChatHandler* /*handler*/, char const* /*args*/)
     {
-        Player* player = handler->GetSession()->GetPlayer();
-        InstanceMap* map = player->GetMap()->ToInstanceMap();
-        if (!map)
-        {
-            handler->PSendSysMessage(LANG_NOT_DUNGEON);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
+        //Player* player = handler->GetSession()->GetPlayer();
+        //InstanceMap* map = player->GetMap()->ToInstanceMap();
+        //if (!map)
+        //{
+        //    handler->PSendSysMessage(LANG_NOT_DUNGEON);
+        //    handler->SetSentErrorMessage(true);
+        //    return false;
+        //}
 
-        if (!map->GetInstanceScript())
-        {
-            handler->PSendSysMessage(LANG_NO_INSTANCE_DATA);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
+        //if (!map->GetInstanceScript())
+        //{
+        //    handler->PSendSysMessage(LANG_NO_INSTANCE_DATA);
+        //    handler->SetSentErrorMessage(true);
+        //    return false;
+        //}
 
-        map->GetInstanceScript()->SaveToDB();
+        //map->GetInstanceScript()->SaveToDB();
 
         return true;
     }
@@ -266,7 +266,8 @@ public:
         }
 
         map->GetInstanceScript()->SetBossState(encounterId, EncounterState(state));
-        handler->PSendSysMessage(LANG_COMMAND_INST_SET_BOSS_STATE, encounterId, state, InstanceScript::GetBossStateName(state));
+        char const* stateName = InstanceScript::GetBossStateName(EncounterState(state));
+        handler->PSendSysMessage(LANG_COMMAND_INST_SET_BOSS_STATE, encounterId, state, stateName);
         return true;
     }
 
@@ -330,7 +331,8 @@ public:
         }
 
         int32 state = map->GetInstanceScript()->GetBossState(encounterId);
-        handler->PSendSysMessage(LANG_COMMAND_INST_GET_BOSS_STATE, encounterId, state, InstanceScript::GetBossStateName(state));
+        char const* stateName = InstanceScript::GetBossStateName(EncounterState(state));
+        handler->PSendSysMessage(LANG_COMMAND_INST_GET_BOSS_STATE, encounterId, state, stateName);
         return true;
     }
 };
