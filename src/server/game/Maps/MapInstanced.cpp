@@ -308,8 +308,8 @@ bool MapInstanced::DestroyInstance(InstancedMaps::iterator &itr)
         Map::UnloadAll();
     }
 
-    // Free up the instance id and allow it to be reused for bgs and arenas
-    if (itr->second->IsBattlegroundOrArena())
+    // Free up the instance id and allow it to be reused for normal dungeons, bgs and arenas
+    if (itr->second->IsBattlegroundOrArena() || !itr->second->GetMapDifficulty()->HasResetSchedule())
         sMapMgr->FreeInstanceId(itr->second->GetInstanceId());
 
     // erase map

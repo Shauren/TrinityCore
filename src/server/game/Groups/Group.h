@@ -40,6 +40,9 @@ class WorldSession;
 struct ItemDisenchantLootEntry;
 struct MapEntry;
 
+enum class InstanceResetMethod : uint8;
+enum class InstanceResetResult : uint8;
+
 namespace WorldPackets
 {
     namespace Loot
@@ -343,7 +346,7 @@ class TC_GAME_API Group
         Difficulty GetDungeonDifficultyID() const { return m_dungeonDifficulty; }
         Difficulty GetRaidDifficultyID() const { return m_raidDifficulty; }
         Difficulty GetLegacyRaidDifficultyID() const { return m_legacyRaidDifficulty; }
-        void ResetInstances(InstanceResetMethod method, bool isRaid, bool isLegacy, Player* SendMsgTo);
+        void ResetInstances(InstanceResetMethod method, Player* notifyPlayer);
 
         // -no description-
         //void SendInit(WorldSession* session);
