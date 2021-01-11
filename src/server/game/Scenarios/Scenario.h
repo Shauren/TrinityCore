@@ -97,6 +97,8 @@ class TC_GAME_API Scenario : public CriteriaHandler
         ScenarioData const* _data;
 
     private:
+        static CriteriaList const EmptyCriteriaList;
+
         ScenarioStepEntry const* _currentstep;
         std::map<ScenarioStepEntry const*, ScenarioStepState> _stepStates;
 };

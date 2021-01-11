@@ -24,6 +24,8 @@
 #include "ScenarioMgr.h"
 #include "ScenarioPackets.h"
 
+CriteriaList const Scenario::EmptyCriteriaList;
+
 Scenario::Scenario(ScenarioData const* scenarioData) : _data(scenarioData), _currentstep(nullptr)
 {
     ASSERT(_data);
@@ -307,7 +309,10 @@ std::vector<WorldPackets::Achievement::CriteriaProgress> Scenario::GetCriteriasP
 
 CriteriaList const& Scenario::GetCriteriaByType(CriteriaTypes type, uint32 /*asset*/) const
 {
-    return sCriteriaMgr->GetScenarioCriteriaByType(type);
+    if (CriteriaList const* criterias = sCriteriaMgr->GetScenarioCriteriaByTypeAndScenario(type, _data->Entry->ID))
+        return *criterias;
+
+    return EmptyCriteriaList;
 }
 
 void Scenario::SendBootPlayer(Player* player)
