@@ -20,23 +20,22 @@
 
 #include "Scenario.h"
 
-class Map;
+class InstanceMap;
 
 typedef std::unordered_map<uint8, CriteriaProgressMap> StepCriteriaProgressMap;
 
 class TC_GAME_API InstanceScenario : public Scenario
 {
     public:
-        InstanceScenario(Map const* map, ScenarioData const* scenarioData);
+        InstanceScenario(InstanceMap const* map, ScenarioData const* scenarioData);
 
-        void SaveToDB();
-        void LoadInstanceData(uint32 instanceId);
+        void LoadInstanceData();
 
     protected:
         std::string GetOwnerInfo() const override;
         void SendPacket(WorldPacket const* data) const override;
 
-        Map const* _map;
+        InstanceMap const* _map;
         ScenarioData const* _data;
         StepCriteriaProgressMap _stepCriteriaProgress;
 };

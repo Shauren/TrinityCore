@@ -71,12 +71,6 @@ _entranceId(0), _temporaryEntranceId(0), _combatResurrectionTimer(0), _combatRes
 #endif // #ifndef TRINITY_API_USE_DYNAMIC_LINKING
 }
 
-void InstanceScript::SaveToDB()
-{
-    if (InstanceScenario* scenario = instance->GetInstanceScenario())
-        scenario->SaveToDB();
-}
-
 bool InstanceScript::IsEncounterInProgress() const
 {
     for (std::vector<BossInfo>::const_iterator itr = bosses.begin(); itr != bosses.end(); ++itr)
@@ -410,7 +404,6 @@ bool InstanceScript::SetBossState(uint32 id, EncounterState state)
             }
 
             bossInfo->state = state;
-            SaveToDB();
             if (dungeonEncounter)
                 instance->UpdateInstanceLock({ dungeonEncounter, id, state });
         }
