@@ -58,6 +58,11 @@ struct MapDifficultyEntry;
 enum Difficulty : uint8;
 enum TransferAbortReason : uint32;
 
+namespace boost
+{
+    class shared_mutex;
+}
+
 #define INSTANCE_ID_HIGH_MASK   0x1F440000
 #define INSTANCE_ID_LFG_MASK    0x00000001
 #define INSTANCE_ID_NORMAL_MASK 0x00010000
@@ -171,7 +176,6 @@ struct InstanceLockUpdateEvent
     Optional<uint32> EntranceWorldSafeLocId;
 };
 
-// TOTALLY NOT THREADSAFE YET
 class TC_GAME_API InstanceLockMgr
 {
 public:
@@ -260,6 +264,7 @@ private:
     static InstanceLock* FindInstanceLock(LockMap const& locks, ObjectGuid const& playerGuid, MapDb2Entries const& entries);
     InstanceLock* FindActiveInstanceLock(ObjectGuid const& playerGuid, MapDb2Entries const& entries, bool ignoreTemporary, bool ignoreExpired) const;
 
+    std::unique_ptr<boost::shared_mutex> _locksMutex;
     LockMap _temporaryInstanceLocksByPlayer; // locks stored here before any boss gets killed
     LockMap _instanceLocksByPlayer;
     std::unordered_map<uint32, std::weak_ptr<SharedInstanceLockData>> _instanceLockDataById;

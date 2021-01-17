@@ -24,6 +24,8 @@
 #include "MapManager.h"
 #include "Player.h" // for TransferAbortReason
 #include "World.h"
+#include <boost/thread/shared_mutex.hpp>
+#include <boost/thread/locks.hpp>
 
 InstanceLockData::~InstanceLockData()
 {
@@ -91,7 +93,9 @@ bool MapDb2Entries::IsInstanceIdBound() const
     return !Map->IsFlexLocking() && !MapDifficulty->IsUsingEncounterLocks();
 }
 
-InstanceLockMgr::InstanceLockMgr() = default;
+InstanceLockMgr::InstanceLockMgr() : _locksMutex(std::make_unique<boost::shared_mutex>())
+{
+}
 
 InstanceLockMgr::~InstanceLockMgr() = default;
 
@@ -212,6 +216,8 @@ InstanceLock* InstanceLockMgr::FindActiveInstanceLock(ObjectGuid const& playerGu
 
 InstanceLock* InstanceLockMgr::FindActiveInstanceLock(ObjectGuid const& playerGuid, MapDb2Entries const& entries, bool ignoreTemporary, bool ignoreExpired) const
 {
+    boost::shared_lock<boost::shared_mutex> guard(*_locksMutex);
+
     InstanceLock* lock = FindInstanceLock(_instanceLocksByPlayer, playerGuid, entries);
 
     // Ignore expired and not extended locks
@@ -224,6 +230,7 @@ InstanceLock* InstanceLockMgr::FindActiveInstanceLock(ObjectGuid const& playerGu
     return FindInstanceLock(_temporaryInstanceLocksByPlayer, playerGuid, entries);
 }
 
+// used in world update thread (THREADUNSAFE packets) - no locking neccessary
 std::vector<InstanceLock const*> InstanceLockMgr::GetInstanceLocksForPlayer(ObjectGuid const& playerGuid) const
 {
     std::vector<InstanceLock const*> locks;
@@ -238,6 +245,7 @@ std::vector<InstanceLock const*> InstanceLockMgr::GetInstanceLocksForPlayer(Obje
     return locks;
 }
 
+// used in world update thread (cross map teleportation) - no locking neccessary
 InstanceLock* InstanceLockMgr::CreateInstanceLockForNewInstance(ObjectGuid const& playerGuid, MapDb2Entries const& entries, uint32 instanceId)
 {
     if (!entries.MapDifficulty->HasResetSchedule())
@@ -269,6 +277,8 @@ InstanceLock* InstanceLockMgr::UpdateInstanceLockForPlayer(CharacterDatabaseTran
     InstanceLock* instanceLock = FindActiveInstanceLock(playerGuid, entries, true, true);
     if (!instanceLock)
     {
+        boost::unique_lock<boost::shared_mutex> guard(*_locksMutex);
+
         // Move lock from temporary storage if it exists there
         // This is to avoid destroying expired locks before any boss is killed in a fresh lock
         // player can still change his mind, exit instance and reactivate old lock
@@ -309,7 +319,12 @@ InstanceLock* InstanceLockMgr::UpdateInstanceLockForPlayer(CharacterDatabaseTran
             instanceLock = new InstanceLock(entries.MapDifficulty->MapID, Difficulty(entries.MapDifficulty->DifficultyID),
                 GetNextResetTime(entries), updateEvent.InstanceId);
 
-        _instanceLocksByPlayer[playerGuid][entries.GetKey()].reset(instanceLock);
+        {
+            boost::unique_lock<boost::shared_mutex> guard(*_locksMutex);
+
+            _instanceLocksByPlayer[playerGuid][entries.GetKey()].reset(instanceLock);
+        }
+
         TC_LOG_DEBUG("instance.locks", "[%u-%s | %u-%s] Created new instance lock for %s in instance %u",
             entries.Map->ID, entries.Map->MapName[sWorld->GetDefaultDbcLocale()],
             uint32(entries.MapDifficulty->DifficultyID), sDifficultyStore.AssertEntry(entries.MapDifficulty->DifficultyID)->Name[sWorld->GetDefaultDbcLocale()],
