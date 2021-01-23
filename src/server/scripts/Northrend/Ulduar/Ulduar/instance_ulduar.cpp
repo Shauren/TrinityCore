@@ -132,6 +132,27 @@ ObjectData const objectData[] =
     { 0,                               0                     }
 };
 
+DungeonEncounterData const encounters[] =
+{
+    { BOSS_LEVIATHAN, {{ 1132 }} },
+    { BOSS_IGNIS, {{ 1136 }} },
+    { BOSS_RAZORSCALE, {{ 1139 }} },
+    { BOSS_XT002, {{ 1142 }} },
+    { BOSS_ASSEMBLY_OF_IRON, {{ 1140 }} },
+    { BOSS_KOLOGARN, {{ 1137 }} },
+    { BOSS_AURIAYA, {{ 1131 }} },
+    { BOSS_HODIR, {{ 1135 }} },
+    { BOSS_THORIM, {{ 1141 }} },
+    { BOSS_FREYA, {{ 1133 }} },
+    { BOSS_MIMIRON, {{ 1138 }} },
+    { BOSS_VEZAX, {{ 1134 }} },
+    { BOSS_YOGG_SARON, {{ 1143 }} },
+    { BOSS_ALGALON, {{ 1130 }} },
+    { BOSS_BRIGHTLEAF, {{ 1164 }} },
+    { BOSS_IRONBRANCH, {{ 1165 }} },
+    { BOSS_STONEBARK, {{ 1166 }} }
+};
+
 class instance_ulduar : public InstanceMapScript
 {
     public:
@@ -147,6 +168,7 @@ class instance_ulduar : public InstanceMapScript
                 LoadDoorData(doorData);
                 LoadMinionData(minionData);
                 LoadObjectData(creatureData, objectData);
+                LoadDungeonEncounterData(encounters);
 
                 _maxArmorItemLevel = 0;
                 _maxWeaponItemLevel = 0;

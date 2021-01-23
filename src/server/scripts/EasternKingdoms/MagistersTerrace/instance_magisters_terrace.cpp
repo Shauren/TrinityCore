@@ -42,6 +42,14 @@ DoorData const doorData[] =
     { 0,                       0,             DOOR_TYPE_ROOM } // END
 };
 
+DungeonEncounterData const encounters[] =
+{
+    { DATA_SELIN, {{ 1897 }} },
+    { DATA_VEXALLUS, {{ 1898 }} },
+    { DATA_DELRISSA, {{ 1895 }} },
+    { DATA_KAELTHAS, {{ 1894 }} }
+};
+
 Position const KalecgosSpawnPos = { 164.3747f, -397.1197f, 2.151798f, 1.66219f };
 
 class instance_magisters_terrace : public InstanceMapScript
@@ -56,6 +64,7 @@ class instance_magisters_terrace : public InstanceMapScript
                 SetHeaders(DataHeader);
                 SetBossNumber(EncounterCount);
                 LoadDoorData(doorData);
+                LoadDungeonEncounterData(encounters);
 
                 DelrissaDeathCount = 0;
             }

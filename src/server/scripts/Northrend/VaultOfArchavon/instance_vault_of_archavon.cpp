@@ -35,6 +35,14 @@ ObjectData const creatureData[] =
     { 0,            0,            }
 };
 
+DungeonEncounterData const encounters[] =
+{
+    { NPC_ARCHAVON, {{ 1126 }} },
+    { NPC_EMALON, {{ 1127 }} },
+    { NPC_KORALON, {{ 1128 }} },
+    { NPC_TORAVON, {{ 1129 }} }
+};
+
 class instance_vault_of_archavon : public InstanceMapScript
 {
     public:
@@ -47,6 +55,7 @@ class instance_vault_of_archavon : public InstanceMapScript
                 SetHeaders(DataHeader);
                 SetBossNumber(EncounterCount);
                 LoadObjectData(creatureData, nullptr);
+                LoadDungeonEncounterData(encounters);
 
                 ArchavonDeath   = 0;
                 EmalonDeath     = 0;

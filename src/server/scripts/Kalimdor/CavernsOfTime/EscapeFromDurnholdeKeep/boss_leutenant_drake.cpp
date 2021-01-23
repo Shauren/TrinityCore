@@ -113,9 +113,9 @@ public:
         return GetOldHillsbradAI<boss_lieutenant_drakeAI>(creature);
     }
 
-    struct boss_lieutenant_drakeAI : public ScriptedAI
+    struct boss_lieutenant_drakeAI : public BossAI
     {
-        boss_lieutenant_drakeAI(Creature* creature) : ScriptedAI(creature)
+        boss_lieutenant_drakeAI(Creature* creature) : BossAI(creature, 0)
         {
             Initialize();
         }
@@ -142,10 +142,12 @@ public:
         void Reset() override
         {
             Initialize();
+            _Reset();
         }
 
         void EnterCombat(Unit* /*who*/) override
         {
+            _EnterCombat();
             Talk(SAY_AGGRO);
         }
 
@@ -156,6 +158,7 @@ public:
 
         void JustDied(Unit* /*killer*/) override
         {
+            _JustDied();
             Talk(SAY_DEATH);
         }
 

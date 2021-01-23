@@ -48,7 +48,6 @@ enum Misc
     MIN_KILLS                       = 30
 };
 
-
 //NOTE: there are 6 platforms
 //there should be 3 shatterers and 2 priestess on all platforms, total of 30 elites, else it won't work!
 //delete all other elites not on platforms! these mobs should only be on those platforms nowhere else.
@@ -61,6 +60,16 @@ enum Misc
 4 - Morogrim Tidewalker Event
 5 - Lady Vashj Event
 */
+
+DungeonEncounterData const encounters[] =
+{
+    { 0, {{ 623 }} },
+    { 1, {{ 625 }} },
+    { 2, {{ 624 }} },
+    { 3, {{ 626 }} },
+    { 4, {{ 627 }} },
+    { 5, {{ 628 }} }
+};
 
 class go_bridge_console : public GameObjectScript
 {
@@ -98,6 +107,7 @@ class instance_serpent_shrine : public InstanceMapScript
             {
                 SetHeaders(DataHeader);
                 SetBossNumber(MAX_ENCOUNTER);
+                LoadDungeonEncounterData(encounters);
 
                 StrangePool = 0;
                 Water = WATERSTATE_FRENZY;

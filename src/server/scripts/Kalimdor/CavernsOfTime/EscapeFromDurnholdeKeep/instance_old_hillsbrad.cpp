@@ -41,6 +41,13 @@ EndScriptData */
 #define QUEST_ENTRY_DIVERSION   10283
 #define LODGE_QUEST_TRIGGER     20155
 
+DungeonEncounterData const encounters[] =
+{
+    { 0, {{ 1905 }} },
+    { 1, {{ 1907 }} },
+    { 2, {{ 1906 }} }
+};
+
 class instance_old_hillsbrad : public InstanceMapScript
 {
 public:
@@ -56,6 +63,8 @@ public:
         instance_old_hillsbrad_InstanceMapScript(InstanceMap* map) : InstanceScript(map)
         {
             SetHeaders(DataHeader);
+            SetBossNumber(3);
+            LoadDungeonEncounterData(encounters);
             memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
 
             mBarrelCount = 0;
@@ -173,6 +182,7 @@ public:
                 }
                 case TYPE_THRALL_PART1:
                     m_auiEncounter[2] = data;
+                    SetBossState(1, EncounterState(data));
                     TC_LOG_DEBUG("scripts", "Instance Old Hillsbrad: Thrall event part I adjusted to data %u.", data);
                     break;
                 case TYPE_THRALL_PART2:
@@ -185,7 +195,8 @@ public:
                     break;
                 case TYPE_THRALL_PART4:
                     m_auiEncounter[5] = data;
-                     TC_LOG_DEBUG("scripts", "Instance Old Hillsbrad: Thrall event part IV adjusted to data %u.", data);
+                    SetBossState(2, EncounterState(data));
+                    TC_LOG_DEBUG("scripts", "Instance Old Hillsbrad: Thrall event part IV adjusted to data %u.", data);
                     break;
             }
         }

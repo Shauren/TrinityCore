@@ -51,6 +51,18 @@ ObjectData const creatureData[] =
     { 0,                   0                           } // END
 };
 
+DungeonEncounterData const encounters[] =
+{
+    { DATA_RAZORGORE_THE_UNTAMED, {{ 610 }} },
+    { DATA_VAELASTRAZ_THE_CORRUPT, {{ 611 }} },
+    { DATA_BROODLORD_LASHLAYER, {{ 612 }} },
+    { DATA_FIREMAW, {{ 613 }} },
+    { DATA_EBONROC, {{ 614 }} },
+    { DATA_FLAMEGOR, {{ 615 }} },
+    { DATA_CHROMAGGUS, {{ 616 }} },
+    { DATA_NEFARIAN, {{ 617 }} }
+};
+
 Position const SummonPosition[8] =
 {
     {-7661.207520f, -1043.268188f, 407.199554f, 6.280452f},
@@ -78,6 +90,7 @@ public:
             SetBossNumber(EncounterCount);
             LoadDoorData(doorData);
             LoadObjectData(creatureData, nullptr);
+            LoadDungeonEncounterData(encounters);
 
             // Razorgore
             EggCount = 0;

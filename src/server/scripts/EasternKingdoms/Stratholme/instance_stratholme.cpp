@@ -43,6 +43,15 @@ enum InstanceEvents
     EVENT_SLAUGHTER_SQUARE  = 2
 };
 
+DungeonEncounterData const encounters[] =
+{
+    { 1, {{ 479 }} }, // Baroness Anastari
+    { 2, {{ 480 }} }, // Nerub'enkan
+    { 3, {{ 481 }} }, // Maleki the Pallid
+    { 4, {{ 483 }} }, // Ramstein the Gorger
+    { 5, {{ 484 }} }  // Lord Aurius Rivendare
+};
+
 class instance_stratholme : public InstanceMapScript
 {
     public:
@@ -54,6 +63,7 @@ class instance_stratholme : public InstanceMapScript
             {
                 SetHeaders(DataHeader);
                 SetBossNumber(MAX_ENCOUNTER);
+                LoadDungeonEncounterData(encounters);
 
                 for (uint8 i = 0; i < 5; ++i)
                     IsSilverHandDead[i] = false;

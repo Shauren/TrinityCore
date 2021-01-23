@@ -25,6 +25,15 @@
 
 uint32 const EncounterCount     = 5;
 
+enum HYBossIds
+{
+    BOSS_RAGE_WINTERCHILL   = 0,
+    BOSS_ANETHERON          = 1,
+    BOSS_KAZROGAL           = 2,
+    BOSS_AZGALOR            = 3,
+    BOSS_ARCHIMONDE         = 4,
+};
+
 enum HYDataTypes
 {
     DATA_ANETHERON              = 1,

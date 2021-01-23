@@ -30,6 +30,14 @@ DoorData const doorData[] =
     { 0,               0,            DOOR_TYPE_ROOM    } // END
 };
 
+DungeonEncounterData const encounters[] =
+{
+    { DATA_BJARNGRIM, {{ 1987 }} },
+    { DATA_VOLKHAN, {{ 1985 }} },
+    { DATA_IONAR, {{ 1984 }} },
+    { DATA_LOKEN, {{ 1986 }} }
+};
+
 class instance_halls_of_lightning : public InstanceMapScript
 {
     public:
@@ -42,6 +50,7 @@ class instance_halls_of_lightning : public InstanceMapScript
                 SetHeaders(DataHeader);
                 SetBossNumber(EncounterCount);
                 LoadDoorData(doorData);
+                LoadDungeonEncounterData(encounters);
             }
 
             void OnCreatureCreate(Creature* creature) override

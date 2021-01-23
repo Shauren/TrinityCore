@@ -52,6 +52,14 @@ DoorData const doorData[] =
     { 0,                  0,              DOOR_TYPE_ROOM } // END
 };
 
+DungeonEncounterData const encounters[] =
+{
+    { DATA_MEATHOOK, {{ 2002 }} },
+    { DATA_SALRAMM, {{ 2004 }} },
+    { DATA_EPOCH, {{ 2003 }} },
+    { DATA_MAL_GANIS, {{ 2005 }} }
+};
+
 class instance_culling_of_stratholme : public InstanceMapScript
 {
     public:
@@ -64,6 +72,7 @@ class instance_culling_of_stratholme : public InstanceMapScript
                 SetHeaders(DataHeader);
                 SetBossNumber(EncounterCount);
                 LoadDoorData(doorData);
+                LoadDungeonEncounterData(encounters);
 
                 _crateCount        = 0;
                 _eventTimer        = 0;

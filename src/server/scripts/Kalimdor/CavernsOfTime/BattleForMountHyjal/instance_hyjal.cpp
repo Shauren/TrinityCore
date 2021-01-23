@@ -50,6 +50,15 @@ ObjectData const creatureData[] =
     { 0,                  0                   } // END
 };
 
+DungeonEncounterData const encounters[] =
+{
+    { BOSS_RAGE_WINTERCHILL, {{ 618 }} },
+    { BOSS_ANETHERON, {{ 619 }} },
+    { BOSS_KAZROGAL, {{ 620 }} },
+    { BOSS_AZGALOR, {{ 621 }} },
+    { BOSS_ARCHIMONDE, {{ 622 }} }
+};
+
 class instance_hyjal : public InstanceMapScript
 {
 public:
@@ -67,6 +76,7 @@ public:
             SetHeaders(DataHeader);
             SetBossNumber(EncounterCount);
             LoadObjectData(creatureData, nullptr);
+            LoadDungeonEncounterData(encounters);
 
             RaidDamage = 0;
             Trash = 0;
@@ -157,16 +167,16 @@ public:
             switch (type)
             {
                 case DATA_RAGEWINTERCHILLEVENT:
-                    SetBossState(0, EncounterState(data));
+                    SetBossState(BOSS_RAGE_WINTERCHILL, EncounterState(data));
                     break;
                 case DATA_ANETHERONEVENT:
-                    SetBossState(1, EncounterState(data));
+                    SetBossState(BOSS_ANETHERON, EncounterState(data));
                     break;
                 case DATA_KAZROGALEVENT:
-                    SetBossState(2, EncounterState(data));
+                    SetBossState(BOSS_KAZROGAL, EncounterState(data));
                     break;
                 case DATA_AZGALOREVENT:
-                    SetBossState(3, EncounterState(data));
+                    SetBossState(BOSS_AZGALOR, EncounterState(data));
                     if (data == DONE)
                     {
                         instance->LoadGrid(5581.49f, -3445.63f);
@@ -183,7 +193,7 @@ public:
                     }
                     break;
                 case DATA_ARCHIMONDEEVENT:
-                    SetBossState(4, EncounterState(data));
+                    SetBossState(BOSS_ARCHIMONDE, EncounterState(data));
                     break;
                 case DATA_RESET_TRASH_COUNT:
                     Trash = 0;

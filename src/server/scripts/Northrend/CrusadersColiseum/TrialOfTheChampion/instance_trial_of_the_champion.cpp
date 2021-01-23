@@ -34,6 +34,14 @@ EndScriptData */
 
 #define MAX_ENCOUNTER  4
 
+DungeonEncounterData const encounters[] =
+{
+    { BOSS_GRAND_CHAMPIONS, {{ 2022 }} },
+    { BOSS_ARGENT_CHALLENGE_E, {{ 2023 }} },
+    { BOSS_ARGENT_CHALLENGE_P, {{ 2023 }} },
+    { BOSS_BLACK_KNIGHT, {{ 2021 }} }
+};
+
 class instance_trial_of_the_champion : public InstanceMapScript
 {
 public:
@@ -50,6 +58,7 @@ public:
         {
             SetHeaders(DataHeader);
             SetBossNumber(MAX_ENCOUNTER);
+            LoadDungeonEncounterData(encounters);
             uiMovementDone = 0;
             uiGrandChampionsDeaths = 0;
             uiArgentSoldierDeaths = 0;

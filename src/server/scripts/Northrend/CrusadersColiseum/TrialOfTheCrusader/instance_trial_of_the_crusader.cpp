@@ -34,6 +34,15 @@ BossBoundaryData const boundaries =
     { BOSS_ANUBARAK,  new EllipseBoundary(Position(746.0f, 135.0f), 100.0, 75.0) }
 };
 
+DungeonEncounterData const encounters[] =
+{
+    { BOSS_BEASTS, {{ 1088 }} },
+    { BOSS_JARAXXUS, {{ 1087 }} },
+    { BOSS_CRUSADERS, {{ 1086 }} },
+    { BOSS_VALKIRIES, {{ 1089 }} },
+    { BOSS_ANUBARAK, {{ 1085 }} }
+};
+
 class instance_trial_of_the_crusader : public InstanceMapScript
 {
     public:
@@ -46,6 +55,7 @@ class instance_trial_of_the_crusader : public InstanceMapScript
                 SetHeaders(DataHeader);
                 SetBossNumber(MAX_ENCOUNTERS);
                 LoadBossBoundaries(boundaries);
+                LoadDungeonEncounterData(encounters);
                 EventStage = 0;
                 NorthrendBeasts = NOT_STARTED;
                 EventTimer = 1000;

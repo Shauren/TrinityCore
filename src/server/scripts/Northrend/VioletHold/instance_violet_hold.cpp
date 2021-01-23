@@ -190,6 +190,13 @@ MinionData const minionData[] =
     { 0,                0           } // END
 };
 
+DungeonEncounterData const encounters[] =
+{
+    { DATA_1ST_BOSS, {{ 2019 }} },
+    { DATA_2ND_BOSS, {{ 2018 }} },
+    { DATA_CYANIGOSA, {{ 2020 }} }
+};
+
 class instance_violet_hold : public InstanceMapScript
 {
     public:
@@ -205,6 +212,7 @@ class instance_violet_hold : public InstanceMapScript
                 SetBossNumber(EncounterCount);
                 LoadObjectData(creatureData, gameObjectData);
                 LoadMinionData(minionData);
+                LoadDungeonEncounterData(encounters);
 
                 DoorIntegrity       = 100;
                 WaveCount           = 0;

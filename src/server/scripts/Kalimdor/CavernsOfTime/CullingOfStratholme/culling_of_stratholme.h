@@ -27,12 +27,12 @@ uint32 const EncounterCount = 5;
 
 enum CSDataTypes
 {
-    DATA_ARTHAS,
     DATA_MEATHOOK,
     DATA_SALRAMM,
     DATA_EPOCH,
     DATA_MAL_GANIS,
     DATA_INFINITE,
+    DATA_ARTHAS,
     DATA_CRATE_COUNT,
     DATA_SHKAF_GATE,
     DATA_MAL_GANIS_GATE_1,
