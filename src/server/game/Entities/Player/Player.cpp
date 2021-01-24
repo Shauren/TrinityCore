@@ -14558,7 +14558,7 @@ void Player::SendNewItem(Item* item, uint32 quantity, bool pushed, bool created,
         packet.IsEncounterLoot = true;
     }
 
-    if (broadcast && GetGroup())
+    if (broadcast && GetGroup() && !(item->GetTemplate()->GetFlags3() & ITEM_FLAG3_DONT_REPORT_LOOT_LOG_TO_PARTY))
         GetGroup()->BroadcastPacket(packet.Write(), true);
     else
         SendDirectMessage(packet.Write());
