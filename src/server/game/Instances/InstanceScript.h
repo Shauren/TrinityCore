@@ -294,6 +294,7 @@ class TC_GAME_API InstanceScript : public ZoneScript
         static char const* GetBossStateName(EncounterState state);
         static EncounterState GetBossStateFromName(char const* stateName);
         CreatureBoundary const* GetBossBoundary(uint32 id) const { return id < bosses.size() ? &bosses[id].boundary : nullptr; }
+        DungeonEncounterEntry const* GetBossDungeonEncounter(uint32 id) const;
 
         // Achievement criteria additional requirements check
         // NOTE: not use this if same can be checked existed requirement types from AchievementCriteriaRequirementType

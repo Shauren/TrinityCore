@@ -94,7 +94,8 @@ void LootItem::AddAllowedLooter(const Player* player)
 // --------- Loot ---------
 //
 
-Loot::Loot(uint32 _gold /*= 0*/) : gold(_gold), unlootedCount(0), roundRobinPlayer(), loot_type(LOOT_NONE), maxDuplicates(1), _itemContext(ItemContext::NONE)
+Loot::Loot(uint32 _gold /*= 0*/) : gold(_gold), unlootedCount(0), roundRobinPlayer(), loot_type(LOOT_NONE), maxDuplicates(1), _itemContext(ItemContext::NONE),
+    _dungeonEncounterId(0)
 {
 }
 
@@ -773,7 +774,7 @@ NotNormalLootItemList* Loot::FillNonQuestNonFFAConditionalLoot(Player* player, b
 // --------- AELootResult ---------
 //
 
-void AELootResult::Add(Item* item, uint8 count, LootType lootType)
+void AELootResult::Add(Item* item, uint8 count, LootType lootType, uint32 dungeonEncounterId)
 {
     auto itr = _byItem.find(item);
     if (itr != _byItem.end())
@@ -785,6 +786,7 @@ void AELootResult::Add(Item* item, uint8 count, LootType lootType)
         value.item = item;
         value.count = count;
         value.lootType = lootType;
+        value.dungeonEncounterId = dungeonEncounterId;
         _byOrder.push_back(value);
     }
 }

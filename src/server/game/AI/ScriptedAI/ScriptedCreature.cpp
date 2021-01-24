@@ -472,7 +472,12 @@ void BossAI::_JustDied()
     summons.DespawnAll();
     scheduler.CancelAll();
     if (instance)
+    {
+        if (DungeonEncounterEntry const* dungeonEncounter = instance->GetBossDungeonEncounter(_bossId))
+            me->loot.SetDungeonEncounterId(dungeonEncounter->ID);
+
         instance->SetBossState(_bossId, DONE);
+    }
 }
 
 void BossAI::_JustReachedHome()

@@ -347,6 +347,9 @@ bool GameObject::Create(uint32 entry, Map* map, Position const& pos, QuaternionD
 
     switch (goInfo->type)
     {
+        case GAMEOBJECT_TYPE_CHEST:
+            loot.SetDungeonEncounterId(goInfo->chest.DungeonEncounter);
+            break;
         case GAMEOBJECT_TYPE_FISHINGHOLE:
             SetGoAnimProgress(animProgress);
             m_goValue.FishingHole.MaxOpens = urand(GetGOInfo()->fishingHole.minRestock, GetGOInfo()->fishingHole.maxRestock);

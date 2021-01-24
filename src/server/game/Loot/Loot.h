@@ -228,6 +228,9 @@ struct TC_GAME_API Loot
     ObjectGuid const& GetGUID() const { return _GUID; }
     void SetGUID(ObjectGuid const& guid) { _GUID = guid; }
 
+    uint32 GetDungeonEncounterId() const { return _dungeonEncounterId; }
+    void SetDungeonEncounterId(uint32 dungeonEncounterId) { _dungeonEncounterId = dungeonEncounterId; }
+
     // if loot becomes invalid this reference is used to inform the listener
     void addLootValidatorRef(LootValidatorRef* pLootValidatorRef)
     {
@@ -279,6 +282,7 @@ private:
     // Loot GUID
     ObjectGuid _GUID;
     ItemContext _itemContext;
+    uint32 _dungeonEncounterId;
 };
 
 class TC_GAME_API AELootResult
@@ -289,11 +293,12 @@ public:
         Item* item;
         uint8 count;
         LootType lootType;
+        uint32 dungeonEncounterId;
     };
 
     typedef std::vector<ResultValue> OrderedStorage;
 
-    void Add(Item* item, uint8 count, LootType lootType);
+    void Add(Item* item, uint8 count, LootType lootType, uint32 dungeonEncounterId);
 
     OrderedStorage::const_iterator begin() const;
     OrderedStorage::const_iterator end() const;
