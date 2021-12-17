@@ -94,6 +94,13 @@ bool checkDirectories(bool debugOutput, std::vector<std::string>& dbcLocales)
     return true;
 }
 
+int finish(char const* message, int returnValue)
+{
+    printf("%s", message);
+    getchar(); // Wait for user input
+    return returnValue;
+}
+
 bool handleArgs(int argc, char** argv,
                int &mapnum,
                int &tileX,
@@ -112,6 +119,7 @@ bool handleArgs(int argc, char** argv,
                unsigned int& threads)
 {
     char* param = nullptr;
+    [[maybe_unused]] bool allowDebug = false;
     for (int i = 1; i < argc; ++i)
     {
         if (strcmp(argv[i], "--maxAngle") == 0)
@@ -264,6 +272,10 @@ bool handleArgs(int argc, char** argv,
 
             offMeshInputPath = param;
         }
+        else if (strcmp(argv[i], "--allowDebug") == 0)
+        {
+            allowDebug = true;
+        }
         else if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-?"))
         {
             printf("%s\n", Readme);
@@ -283,14 +295,16 @@ bool handleArgs(int argc, char** argv,
         }
     }
 
-    return true;
-}
+#ifndef NDEBUG
+    if (!allowDebug)
+    {
+        finish("Build mmaps_generator in RelWithDebInfo or Release mode or it will take hours to complete!!!\nUse '--allowDebug' argument if you really want to run this tool in Debug.\n", -2);
+        silent = true;
+        return false;
+    }
+#endif
 
-int finish(char const* message, int returnValue)
-{
-    printf("%s", message);
-    getchar(); // Wait for user input
-    return returnValue;
+    return true;
 }
 
 std::unordered_map<uint32, uint8> LoadLiquid(std::string const& locale, bool silent, int32 errorExitCode)
