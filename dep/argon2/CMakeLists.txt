@@ -8,34 +8,10 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-file(GLOB_RECURSE sources *.c)
+find_package(unofficial-argon2 CONFIG REQUIRED)
 
-if(TRINITY_SYSTEM_PROCESSOR MATCHES "x86|amd64")
-  list(REMOVE_ITEM sources
-    ${CMAKE_CURRENT_SOURCE_DIR}/argon2/ref.c)
-else()
-  list(REMOVE_ITEM sources
-    ${CMAKE_CURRENT_SOURCE_DIR}/argon2/opt.c)
-endif()
-
-add_library(argon2 STATIC
-  ${sources})
-
-target_compile_definitions(argon2
-  PRIVATE
-    ARGON2_NO_THREADS)
-
-set_target_properties(argon2 PROPERTIES LINKER_LANGUAGE CXX)
-
-target_include_directories(argon2
-  PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR})
+add_library(argon2 INTERFACE)
 
 target_link_libraries(argon2
-  PRIVATE
-    trinity-dependency-interface)
-
-set_target_properties(argon2
-  PROPERTIES
-    FOLDER
-      "dep")
+  INTERFACE
+    unofficial::argon2::libargon2)
