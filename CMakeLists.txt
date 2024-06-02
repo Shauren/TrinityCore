@@ -14,15 +14,13 @@ cmake_minimum_required(VERSION 3.18)
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
-# Set projectname (must be done AFTER setting configurationtypes)
-project(TrinityCore)
-
 # CMake policies (can not be handled elsewhere)
 cmake_policy(SET CMP0005 NEW)
 cmake_policy(SET CMP0043 NEW) # Ignore COMPILE_DEFINITIONS_<Config> properties
 cmake_policy(SET CMP0054 NEW) # Only interpret if() arguments as variables or keywords when unquoted - prevents intepreting if(SOME_STRING_VARIABLE MATCHES "MSVC") as if(SOME_STRING_VARIABLE MATCHES "1")
 cmake_policy(SET CMP0067 NEW) # Honor language standard in try_compile() source-file signature
 cmake_policy(SET CMP0074 NEW) # find_package() uses <PackageName>_ROOT variables
+cmake_policy(SET CMP0077 NEW) # option() honors normal variables.
 
 if(POLICY CMP0144)
   cmake_policy(SET CMP0144 NEW) # find_package() uses upper-case <PACKAGENAME>_ROOT variables
@@ -31,6 +29,16 @@ endif()
 if(POLICY CMP0153)
   cmake_policy(SET CMP0153 NEW) # The exec_program() command should not be called
 endif()
+
+if(NOT CMAKE_BUILD_TYPE AND NOT DEFINED ENV{CMAKE_BUILD_TYPE})
+  set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+endif()
+
+include(cmake/macros/SetupVcpkg.cmake)
+SetupVcpkg("2024.06.15")  # version is a branch/tag/commit in microsoft/vcpkg repository
+
+# Set projectname (must be done AFTER setting configurationtypes)
+project(TrinityCore)
 
 # Set RPATH-handing (CMake parameters)
 set(CMAKE_SKIP_BUILD_RPATH 0)
@@ -45,9 +53,6 @@ list(APPEND CMAKE_MODULE_PATH
 # build in Release-mode by default if not explicitly set
 if(CMAKE_GENERATOR STREQUAL "Ninja Multi-Config")
   set(CMAKE_DEFAULT_BUILD_TYPE "RelWithDebInfo" CACHE INTERNAL "")
-endif()
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif()
 
 include(CheckCXXSourceRuns)

@@ -8,36 +8,46 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-set(FMT_HEADERS 
-  include/fmt/args.h
-  include/fmt/chrono.h
-  include/fmt/color.h
-  include/fmt/compile.h
-  include/fmt/core.h
-  include/fmt/format.h
-  include/fmt/format-inl.h
-  include/fmt/os.h
-  include/fmt/ostream.h
-  include/fmt/printf.h
-  include/fmt/ranges.h
-  include/fmt/std.h
-  include/fmt/xchar.h)
+find_package(fmt CONFIG QUIET)
 
-set(FMT_SOURCES
-  src/format.cc
-  src/os.cc)
+if(TARGET fmt::fmt)
+  add_library(fmt INTERFACE)
 
-add_library(fmt STATIC ${FMT_SOURCES} ${FMT_HEADERS})
+  target_link_libraries(fmt
+    INTERFACE
+	  fmt::fmt)
+else()
+  set(FMT_HEADERS 
+    include/fmt/args.h
+    include/fmt/chrono.h
+    include/fmt/color.h
+    include/fmt/compile.h
+    include/fmt/core.h
+    include/fmt/format.h
+    include/fmt/format-inl.h
+    include/fmt/os.h
+    include/fmt/ostream.h
+    include/fmt/printf.h
+    include/fmt/ranges.h
+    include/fmt/std.h
+    include/fmt/xchar.h)
 
-target_include_directories(fmt
-  PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include)
+  set(FMT_SOURCES
+    src/format.cc
+    src/os.cc)
 
-target_link_libraries(fmt
-  PRIVATE
-    trinity-dependency-interface)
+  add_library(fmt STATIC ${FMT_SOURCES} ${FMT_HEADERS})
 
-set_target_properties(fmt
-  PROPERTIES
-    FOLDER
-      "dep")
+  target_include_directories(fmt
+    PUBLIC
+      ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+  target_link_libraries(fmt
+    PRIVATE
+      trinity-dependency-interface)
+
+  set_target_properties(fmt
+    PROPERTIES
+      FOLDER
+        "dep")
+endif()
