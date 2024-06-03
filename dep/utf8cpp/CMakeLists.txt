@@ -8,8 +8,10 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+find_package(utf8cpp CONFIG REQUIRED)
+
 add_library(utf8cpp INTERFACE)
 
-target_include_directories(utf8cpp
+target_link_libraries(utf8cpp
   INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR})
+    utf8cpp::utf8cpp)
