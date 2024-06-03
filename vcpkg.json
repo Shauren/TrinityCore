@@ -27,6 +27,7 @@
         "boost-system",
         "boost-thread",
         "boost-uuid",
+        "casclib",
         "fmt",
         "libmysql",
         "openssl",
