@@ -33,6 +33,7 @@
         "libmysql",
         "openssl",
         "rapidjson",
+        "utfcpp",
         "zlib"
     ]
 }
