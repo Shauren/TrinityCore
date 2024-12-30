@@ -10,44 +10,8 @@
 
 find_package(fmt CONFIG QUIET)
 
-if(TARGET fmt::fmt)
-  add_library(fmt INTERFACE)
+add_library(fmt INTERFACE)
 
-  target_link_libraries(fmt
-    INTERFACE
-	  fmt::fmt)
-else()
-  set(FMT_HEADERS 
-    include/fmt/args.h
-    include/fmt/chrono.h
-    include/fmt/color.h
-    include/fmt/compile.h
-    include/fmt/core.h
-    include/fmt/format.h
-    include/fmt/format-inl.h
-    include/fmt/os.h
-    include/fmt/ostream.h
-    include/fmt/printf.h
-    include/fmt/ranges.h
-    include/fmt/std.h
-    include/fmt/xchar.h)
-
-  set(FMT_SOURCES
-    src/format.cc
-    src/os.cc)
-
-  add_library(fmt STATIC ${FMT_SOURCES} ${FMT_HEADERS})
-
-  target_include_directories(fmt
-    PUBLIC
-      ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-  target_link_libraries(fmt
-    PRIVATE
-      trinity-dependency-interface)
-
-  set_target_properties(fmt
-    PROPERTIES
-      FOLDER
-        "dep")
-endif()
+target_link_libraries(fmt
+  INTERFACE
+    fmt::fmt)
