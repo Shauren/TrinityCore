@@ -10,9 +10,15 @@
 
 add_library(rapidjson INTERFACE)
 
+find_package(RapidJSON CONFIG QUIET)
+
+if(NOT RAPIDJSON_INCLUDE_DIRS)
+  set(RAPIDJSON_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
+
 target_include_directories(rapidjson
   INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR})
+    ${RAPIDJSON_INCLUDE_DIRS})
 
 target_compile_definitions(rapidjson
   INTERFACE
