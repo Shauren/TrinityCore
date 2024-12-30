@@ -16,7 +16,7 @@
  */
 
 #include "Argon2Hash.h"
-#include <argon2/argon2.h>
+#include <argon2.h>
 
 /*static*/ Optional<std::string> Trinity::Crypto::Argon2::Hash(std::string const& password, BigNumber const& salt, uint32 nIterations, uint32 kibMemoryCost)
 {

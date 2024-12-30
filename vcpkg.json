@@ -2,6 +2,13 @@
     "name": "trinitycore",
     "version-string": "master",
     "dependencies": [
+        {
+            "name": "argon2",
+            "features": [{
+                "name": "hwopt",
+                "platform": "x86|x64"
+            }]
+        },
         "boost-accumulators",
         "boost-asio",
         "boost-beast",
