@@ -19,3 +19,9 @@ target_link_libraries(openssl
   INTERFACE
     OpenSSL::Crypto
     OpenSSL::SSL)
+
+if(WIN32)
+  add_custom_target(openssl_copy_dll ALL ${CMAKE_COMMAND} -E copy "$<IF:$<CONFIG:Debug>,${OPENSSL_LEGACY_DLL_DEBUG},${OPENSSL_LEGACY_DLL_RELEASE}>" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/")
+  install(PROGRAMS "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/legacy.dll" DESTINATION "${CMAKE_INSTALL_PREFIX}")
+  add_dependencies(openssl openssl_copy_dll)
+endif()

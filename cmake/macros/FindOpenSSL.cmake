@@ -484,6 +484,23 @@ if(WIN32 AND NOT CYGWIN)
         "lib/VC/${_OPENSSL_MSVC_ARCH_DIRECTORY}/${_OPENSSL_MSVC_RT_MODE}"
     )
 
+    find_file(OPENSSL_LEGACY_DLL_DEBUG
+      NAMES
+        legacy.dll
+      ${_OPENSSL_ROOT_HINTS_AND_PATHS}
+      PATH_SUFFIXES
+        debug/bin
+        bin
+    )
+
+    find_file(OPENSSL_LEGACY_DLL_RELEASE
+      NAMES
+        legacy.dll
+      ${_OPENSSL_ROOT_HINTS_AND_PATHS}
+      PATH_SUFFIXES
+        bin
+    )
+
     set(LIB_EAY_LIBRARY_DEBUG "${LIB_EAY_DEBUG}")
     set(LIB_EAY_LIBRARY_RELEASE "${LIB_EAY_RELEASE}")
     set(SSL_EAY_LIBRARY_DEBUG "${SSL_EAY_DEBUG}")
@@ -494,7 +511,8 @@ if(WIN32 AND NOT CYGWIN)
     select_library_configurations(SSL_EAY)
 
     mark_as_advanced(LIB_EAY_LIBRARY_DEBUG LIB_EAY_LIBRARY_RELEASE
-                     SSL_EAY_LIBRARY_DEBUG SSL_EAY_LIBRARY_RELEASE)
+                     SSL_EAY_LIBRARY_DEBUG SSL_EAY_LIBRARY_RELEASE
+                     OPENSSL_LEGACY_DLL_DEBUG OPENSSL_LEGACY_DLL_RELEASE)
     set(OPENSSL_SSL_LIBRARY ${SSL_EAY_LIBRARY} )
     set(OPENSSL_CRYPTO_LIBRARY ${LIB_EAY_LIBRARY} )
   elseif(MINGW)
