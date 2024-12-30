@@ -37,7 +37,8 @@ target_include_directories(game-interface
 target_link_libraries(game-interface
   INTERFACE
     shared
-    Detour)
+    Detour
+    efsw)
 
 add_library(game
   ${PRIVATE_SOURCES})
@@ -49,7 +50,6 @@ target_include_directories(game
 target_link_libraries(game
   PRIVATE
     trinity-core-interface
-    efsw
   PUBLIC
     game-interface)
 
