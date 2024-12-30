@@ -26,6 +26,15 @@ if(NOT CMAKE_BUILD_TYPE AND NOT DEFINED ENV{CMAKE_BUILD_TYPE})
   set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif()
 
+if(NOT WIN32 AND NOT DEFINED NOVCPKG)
+  # default to system packages on linux
+  set(NOVCPKG 1)
+endif()
+
+if(NOVCPKG AND (NOT VCPKG_OVERLAY_PORTS MATCHES "${CMAKE_SOURCE_DIR}/cmake/vcpkg/overlays/ci"))
+  list(APPEND VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/cmake/vcpkg/overlays/ci")
+endif()
+
 include(cmake/macros/SetupVcpkg.cmake)
 SetupVcpkg("2024.06.15")  # version is a branch/tag/commit in microsoft/vcpkg repository
 
