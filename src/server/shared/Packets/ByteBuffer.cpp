@@ -145,7 +145,8 @@ void ByteBuffer::PutBits(std::size_t pos, std::size_t value, uint32 bitCount)
 
 void ByteBuffer::print_storage() const
 {
-    if (!sLog->ShouldLog("network", LOG_LEVEL_TRACE)) // optimize disabled trace output
+    Logger const* networkLogger = sLog->GetEnabledLogger("network", LOG_LEVEL_TRACE);
+    if (!networkLogger) // optimize disabled trace output
         return;
 
     std::ostringstream o;
@@ -154,12 +155,13 @@ void ByteBuffer::print_storage() const
         o << read<uint8>(i) << " - ";
     o << ' ';
 
-    TC_LOG_TRACE("network", "{}", o.str());
+    sLog->OutMessageTo(networkLogger, "network", LOG_LEVEL_TRACE, "{}", o.view());
 }
 
 void ByteBuffer::textlike() const
 {
-    if (!sLog->ShouldLog("network", LOG_LEVEL_TRACE)) // optimize disabled trace output
+    Logger const* networkLogger = sLog->GetEnabledLogger("network", LOG_LEVEL_TRACE);
+    if (networkLogger) // optimize disabled trace output
         return;
 
     std::ostringstream o;
@@ -171,12 +173,13 @@ void ByteBuffer::textlike() const
         o << buf;
     }
     o << ' ';
-    TC_LOG_TRACE("network", "{}", o.str());
+    sLog->OutMessageTo(networkLogger, "network", LOG_LEVEL_TRACE, "{}", o.view());
 }
 
 void ByteBuffer::hexlike() const
 {
-    if (!sLog->ShouldLog("network", LOG_LEVEL_TRACE)) // optimize disabled trace output
+    Logger const* networkLogger = sLog->GetEnabledLogger("network", LOG_LEVEL_TRACE);
+    if (!networkLogger) // optimize disabled trace output
         return;
 
     uint32 j = 1, k = 1;
@@ -203,5 +206,5 @@ void ByteBuffer::hexlike() const
         o << buf;
     }
     o << ' ';
-    TC_LOG_TRACE("network", "{}", o.str());
+    sLog->OutMessageTo(networkLogger, "network", LOG_LEVEL_TRACE, "{}", o.view());
 }
