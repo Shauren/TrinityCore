@@ -166,6 +166,7 @@ public:
 
 namespace MapObject
 {
+    bool ShouldExtract(ADT::MODF& mapObjDef, std::string& fileName, uint32 mapId);
     void Extract(ADT::MODF const& mapObjDef, char const* WmoInstName, bool isGlobalWmo, uint32 mapID, uint32 originalMapId,
         FILE* pDirfile, std::vector<ADTOutputCache>* dirfileCache);
 }

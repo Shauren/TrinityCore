@@ -585,13 +585,245 @@ WMOGroup::~WMOGroup()
     delete [] LiquBytes;
 }
 
+bool MapObject::ShouldExtract(ADT::MODF& mapObjDef, std::string& fileName, [[maybe_unused]] uint32 mapId)
+{
+    if ((mapObjDef.Flags & 0x1) != 0)
+    {
+        //if (FILE* destro = fopen("Buildings/destructible.log", "a"))
+        //{
+        //    fprintf(destro, R"(  { fileName: "%s", fileDataID: %u, mapId: %u, uniqueId: %u, pos: { x: %f, y: %f, z: %f } },)" "\n",
+        //        fileName.c_str(), mapObjDef.Id, mapId, mapObjDef.UniqueId, 533.33333f * 32 - mapObjDef.Position.z, 533.33333f * 32 - mapObjDef.Position.x, mapObjDef.Position.y);
+        //    fclose(destro);
+        //}
+
+        // keep objects whose purpose is to be ground and only skip obstacles (like walls)
+        switch (mapObjDef.UniqueId)
+        {
+            // 571 - Northrend
+            case 1894698: // nexus_floating_platform01.wmo
+            case 2713315: // dsexcavationplatform.wmo
+            case 2422013: // wg_siege01.wmo
+            case 2468284: // wg_siege01.wmo
+            case 2422014: // wg_siege01.wmo
+            case 2422015: // wg_siege01.wmo
+            case 2422012: // wg_siege01.wmo
+            case 2453481: // wg_siege01.wmo
+            case 2339089: // wg_tower01.wmo
+            case 2339090: // wg_tower01.wmo
+            case 2339091: // wg_tower01.wmo
+            case 2339092: // wg_tower01.wmo
+            case 2381624: // wg_tower02.wmo
+            case 2381625: // wg_tower02.wmo
+            case 2381628: // wg_tower02.wmo
+            case 2709387: // nd_human_tower_open.wmo
+            case 2705797: // nd_human_wall_end_small02.wmo
+            case 2705802: // nd_human_wall_end_small02.wmo
+            case 2705805: // nd_human_wall_end_small02.wmo
+            case 2705808: // nd_human_wall_end_small02.wmo
+            case 2706003: // nd_human_wall_end_small02.wmo
+            case 2706004: // nd_human_wall_end_small02.wmo
+            case 2706005: // nd_human_wall_end_small02.wmo
+            case 2706006: // nd_human_wall_end_small02.wmo
+            case 2705798: // nd_human_wall_small02.wmo
+            case 2705801: // nd_human_wall_small02.wmo
+            case 2705803: // nd_human_wall_small02.wmo
+            case 2705807: // nd_human_wall_small02.wmo
+            case 2706001: // nd_human_wall_small02.wmo
+            case 2706002: // nd_human_wall_small02.wmo
+            case 2706007: // nd_human_wall_small02.wmo
+            case 2706008: // nd_human_wall_small02.wmo
+            case 2707736: // stormpeaks_irongiant_01.wmo
+            // 603 - Ulduar
+            case 3018484: // ulduar_tower01.wmo
+            case 4013183: // ulduar_building01.wmo
+            case 4013193: // ulduar_building01.wmo
+            case 4013195: // ulduar_building01.wmo
+            case 4013204: // ulduar_building01.wmo
+            case 4027460: // ulduar_building01.wmo
+            case 4013202: // ulduar_tower01.wmo
+            case 4013219: // ulduar_building01.wmo
+            case 4013222: // ulduar_building01.wmo
+            case 4013231: // ulduar_building01.wmo
+            case 4013234: // ulduar_building01.wmo
+            case 4013196: // ulduar_building01.wmo
+            case 4013199: // ulduar_tower01.wmo
+            case 4013205: // ulduar_building01.wmo
+            case 4013215: // ulduar_building01.wmo
+            case 4013218: // ulduar_building01.wmo
+            case 4013223: // ulduar_building01.wmo
+            case 4013226: // ulduar_tower01.wmo
+            case 4013228: // ulduar_building01.wmo
+            case 4013229: // ulduar_building01.wmo
+            case 4013232: // ulduar_building01.wmo
+            case 4013235: // ulduar_building01.wmo
+            case 4013236: // ulduar_building01.wmo
+            // 609 - Ebon Hold
+            case 2559451: // guardtower.wmo
+            case 2616079: // pirateship.wmo
+            // 616 - The Eye of Eternity
+            case 2709658: // nexus_raid_floating_platform.wmo
+            // 631 - Icecrown Citadel
+            case 5535469: // icecrownraid_arthas_precipice_phase0.wmo
+            // 649 - Trial of the Crusader
+            case 4313980: // coliseum_intact_floor.wmo
+                break;
+            // 720 - Firelands
+            case 6316308: // firelands_raid_ragnaros_platform_phase0.wmo
+                fileName = "FILE0008176F.xxx"; // replace with firelands_raid_ragnaros_platform_phase2.wmo for pathfinding reasons
+                mapObjDef.DoodadSet = 1;
+                break;
+            case 6227023: // firelands_volcano.wmo
+            case 6346397: // firelands_lavaboss_bridge_phase0.wmo
+            case 6225885: // firelands_mainbridge.wmo
+            case 6238854: // firelands_phoenixshell.wmo
+            // 732 - Tol Barad
+            case 5839901: // tb_lighthouse.wmo
+            case 5839913: // tb_lighthouse.wmo
+            case 5839951: // tb_lighthouse.wmo
+            // 754 - Throne of the Four Winds
+            case 5973793: // kl_skywall_raid.wmo
+                break;
+            // 755 - Lost City of the Tol'vir
+            case 5994039:
+                fileName = "FILE0006CFCB.xxx"; // replace with tolvir_central_building_01_c.wmo for pathfinding reasons
+                mapObjDef.DoodadSet = 1;
+                break;
+            // 938 - End Time
+            case 6718596: // firelands_lavaboss_platform.wmo
+            case 6718597: // firelands_lavaboss_platform.wmo
+            case 6718598: // firelands_lavaboss_platform.wmo
+            case 6718599: // firelands_lavaboss_platform.wmo
+            // 962 - Gate of the Setting Sun
+            case 7688762: // pa_greatwall_corner_03.wmo
+            case 7688763: // pa_greatwall_corner_02.wmo
+            case 7688764: // pa_greatwall_corner_01.wmo
+            // 967 - Dragon Soul
+            case 7006169: // nd_alliancegunship_dragonsoul.wmo
+            // 1064 - Mogu Island Daily Area
+            case 8542587: // mini_sunwell_a.wmo
+            case 8270873: // pa_dalaran_tower_complete01.wmo
+            // 1126 - Mogu Island Progression Events
+            case 8542608: // mini_sunwell_a.wmo
+            case 8527321: // pa_dalaran_tower_complete01.wmo
+            // 1205 - Blackrock Foundry
+            case 9623865: // 6du_bkfoundry_blackhand_a.wmo
+            // 1220 - Broken Isles
+            case 17283359: // 7bs_nightelf_moonwell_phase01.wmo
+            case 17578766: // 7bs_nightelf_commandbuilding_phase01.wmo
+            case 17283357: // 7bs_nightelf_towertall_phase01.wmo
+            // 1265 - Tanaan Jungle Intro
+            case 9915502: // 6ih_ironhorde_dam.wmo
+            case 10311435: // 6ih_ironhorde_supertank_tilted.wmo
+            case 10192067: // 6ih_ironhorde_ship01.wmo
+            case 10179933: // 6ih_ironhorde_ship01.wmo
+            case 10616762: // 6tj_darkportal.wmo
+            case 9973026: // 6ih_ironhorde_bridged.wmo
+            // 1492 - Maw of Souls
+            case 12907468: // 7du_helheim_ghostship.wmo
+            // 1530 - The Nighthold
+            case 15382672: // 7du_suramarraid_topa.wmo
+            // 1579 - Ulduar (scenario)
+            case 23240511: // ulduar_building01.wmo
+            case 23240528: // ulduar_building01.wmo
+            case 23240555: // ulduar_building01.wmo
+            case 23240556: // ulduar_building01.wmo
+            case 23240557: // ulduar_building01.wmo
+            case 23240560: // ulduar_tower01.wmo
+            case 23240514: // ulduar_tower01.wmo
+            case 23240531: // ulduar_building01.wmo
+            case 23240532: // ulduar_building01.wmo
+            case 23240534: // ulduar_building01.wmo
+            case 23240554: // ulduar_building01.wmo
+            case 23240527: // ulduar_building01.wmo
+            case 23240530: // ulduar_building01.wmo
+            case 23240559: // ulduar_tower01.wmo
+            case 23240512: // ulduar_building01.wmo
+            case 23240513: // ulduar_building01.wmo
+            case 23240518: // ulduar_building01.wmo
+            case 23240521: // ulduar_building01.wmo
+            case 23240522: // ulduar_building01.wmo
+            case 23240523: // ulduar_building01.wmo
+            case 23240525: // ulduar_tower01.wmo
+            case 23240533: // ulduar_building01.wmo
+            case 23240558: // ulduar_building01.wmo
+            // 1676 - Tomb of Sargeras
+            case 17003270: // 7du_tombofsargeras_avatarfloor15.wmo
+            case 17003271: // 7du_tombofsargeras_avatarfloor19.wmo
+            case 17003272: // 7du_tombofsargeras_avatarfloor25.wmo
+            case 17003273: // 7du_tombofsargeras_avatarfloor22.wmo
+            case 17003274: // 7du_tombofsargeras_avatarfloor23.wmo
+            case 17003275: // 7du_tombofsargeras_avatarfloor20.wmo
+            case 17003276: // 7du_tombofsargeras_avatarfloor21.wmo
+            case 17003277: // 7du_tombofsargeras_avatarfloor24.wmo
+            case 17003278: // 7du_tombofsargeras_avatarfloor07.wmo
+            case 17003279: // 7du_tombofsargeras_avatarfloor18.wmo
+            case 17003280: // 7du_tombofsargeras_avatarfloor05.wmo
+            case 17003281: // 7du_tombofsargeras_avatarfloor16.wmo
+            case 17003282: // 7du_tombofsargeras_avatarfloor08.wmo
+            case 17003283: // 7du_tombofsargeras_avatarfloor06.wmo
+            case 17003284: // 7du_tombofsargeras_avatarfloor13.wmo
+            case 17003285: // 7du_tombofsargeras_avatarfloor10.wmo
+            case 17003286: // 7du_tombofsargeras_avatarfloor11.wmo
+            case 17003287: // 7du_tombofsargeras_avatarfloor12.wmo
+            case 17003288: // 7du_tombofsargeras_avatarfloor01.wmo
+            case 17003289: // 7du_tombofsargeras_avatarfloor14.wmo
+            case 17003290: // 7du_tombofsargeras_avatarfloor03.wmo
+            case 17003291: // 7du_tombofsargeras_avatarfloor02.wmo
+            case 17003292: // 7du_tombofsargeras_avatarfloor09.wmo
+            case 17003293: // 7du_tombofsargeras_avatarfloor04.wmo
+            case 17003294: // 7du_tombofsargeras_avatarfloor17.wmo
+            case 17066842: // 7du_tombofsargeras_upperavatarfloor01.wmo
+            // 1704 - Legion Ship - Horizontal - Valsharah
+            case 16960691: // 7lg_legion_commandcenter01_horizontal.wmo
+            // 1705 - Legion Ship - Horizontal - Azsuna
+            case 17175153: // 7lg_legion_commandcenter01_horizontal.wmo
+            // 1706 - Legion Ship - Vertical - HighMountain
+            case 17224635: // 7lg_legion_commandcenter01.wmo
+            // 1707 - Legion Ship - Vertical - Stormheim
+            case 17019460: // 7lg_legion_commandcenter01.wmo
+            // 1734 - Throne of the Four Winds - Shaman Class Mount
+            case 17213860: // kl_skywall_raid.wmo
+            // 2076 - Firelands - Dark Iron Dwarf
+            case 21753085: // firelands_raid_ragnaros_platform_phase0.wmo
+            case 21753055: // firelands_volcano.wmo
+            case 21753065: // firelands_lavaboss_bridge_phase0.wmo
+            case 21753072: // firelands_mainbridge.wmo
+            case 21753087: // firelands_phoenixshell.wmo
+            // 2118 - Battle for Wintergrasp
+            case 23091378: // wg_siege01.wmo
+            case 23091529: // wg_siege01.wmo
+            case 23089816: // wg_siege01.wmo
+            case 23091562: // wg_siege01.wmo
+            case 23091391: // wg_siege01.wmo
+            case 23091511: // wg_siege01.wmo
+            case 23089846: // wg_tower01.wmo
+            case 23089847: // wg_tower01.wmo
+            case 23091372: // wg_tower01.wmo
+            case 23091414: // wg_tower01.wmo
+            case 23091540: // wg_tower02.wmo
+            case 23091491: // wg_tower02.wmo
+            case 23091413: // wg_tower02.wmo
+            // 2235 - Caverns of Time - Anniversary
+            case 26230342: // firelands_raid_ragnaros_platform_phase0.wmo
+            case 26030340: // icecrownraid_arthas_precipice_phase0.wmo
+            // 2654 - 10.2. Nighthold
+            case 44122627: // 7du_suramarraid_topa.wmo
+            // 2657 - Nerub-ar Palace
+            case 46861327: // 11nb_nerubian_platform_boss01.wmo
+            case 48344925: // 11nb_nerubian_platform_boss01.wmo
+            // 2819 - 11.1.7 Icecrown Citadel
+            case 52962111: // icecrownraid_arthas_precipice_phase0.wmo
+                break;
+            default:
+                return false;
+        }
+    }
+
+    return true;
+}
+
 void MapObject::Extract(ADT::MODF const& mapObjDef, char const* WmoInstName, bool isGlobalWmo, uint32 mapID, uint32 originalMapId, FILE* pDirfile, std::vector<ADTOutputCache>* dirfileCache)
 {
-    // destructible wmo, do not dump. we can handle the vmap for these
-    // in dynamic tree (gameobject vmaps)
-    if ((mapObjDef.Flags & 0x1) != 0)
-        return;
-
     //-----------add_in _dir_file----------------
 
     std::string tempname = Trinity::StringFormat("{}/{}", szWorkDirWmo, WmoInstName);
@@ -630,6 +862,8 @@ void MapObject::Extract(ADT::MODF const& mapObjDef, char const* WmoInstName, boo
     uint8 nameSet = mapObjDef.NameSet;
     if (mapID != originalMapId)
         flags |= MOD_PARENT_SPAWN;
+    if (mapObjDef.Flags & 0x1)
+        flags |= MOD_PATH_ONLY;
 
     //write Flags, NameSet, UniqueId, Pos, Rot, Scale, Bound_lo, Bound_hi, name
     fwrite(&flags, sizeof(uint8), 1, pDirfile);

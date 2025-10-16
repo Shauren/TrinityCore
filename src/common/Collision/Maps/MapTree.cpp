@@ -324,6 +324,9 @@ namespace VMAP
                 ModelSpawn spawn;
                 if (ModelSpawn::readFromFile(fileResult.TileFile.get(), spawn))
                 {
+                    if (spawn.flags & MOD_PATH_ONLY && !vm->LoadPathOnlyModels)
+                        continue;
+
                     // acquire model instance
                     std::shared_ptr<WorldModel> model = vm->acquireModelInstance(iBasePath, spawn.name);
                     if (!model)
@@ -407,6 +410,9 @@ namespace VMAP
                     ModelSpawn spawn;
                     if (!ModelSpawn::readFromFile(fileResult.TileFile.get(), spawn))
                         break;
+
+                    if (spawn.flags & MOD_PATH_ONLY && !vm->LoadPathOnlyModels)
+                        continue;
 
                     // update tree
                     uint32 referencedNode = 0;

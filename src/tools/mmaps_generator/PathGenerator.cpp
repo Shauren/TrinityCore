@@ -55,6 +55,7 @@ namespace MMAP
                 auto itr = _liquidTypes.find(liquidId);
                 return itr != _liquidTypes.end() ? (1 << itr->second) : 0;
             };
+            vmgr->LoadPathOnlyModels = true;
             return vmgr;
         }
     }
