@@ -34,7 +34,7 @@ jobs:
         echo "${{ github.base_ref || github.ref_name }}"
         echo "${{ github.base_ref }}"
         echo "${{ github.ref_name }}"
-        false
+        false || false
     - name: Dependencies
       run: |
         sudo apt-get update && sudo apt-get install -yq ccache libboost-dev libboost-filesystem-dev libboost-locale-dev libboost-program-options-dev libboost-regex-dev libboost-thread-dev libssl-dev libreadline-dev zlib1g-dev libbz2-dev
